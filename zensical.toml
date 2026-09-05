@@ -51,6 +51,7 @@ nav = [
         { "How-to" = [
             { "Run a local model with Ollama" = "create/howto-ollama.md" },
             { "Run a local coding agent with Ollama in Docker" = "create/howto-ollama-docker-pi.md" },
+            { "Add a browser chat to Ollama with Open WebUI" = "create/howto-ollama-open-webui.md" },
           ]
         },
         { "Gallery of Tutorials" = "create/create-community.md" },
