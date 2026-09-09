@@ -17,7 +17,9 @@ site_author = "Satyrn AI Contributors"
 # The site_url is the canonical URL for your site. When building online
 # documentation you should set this.
 # Read more: https://zensical.org/docs/setup/basics/#site_url
-#site_url = "https://www.example.com/"
+# Required for navigation.instant: without it sitemap.xml is empty and instant
+# loading breaks internal navigation/links.
+site_url = "https://satyrn-ai.github.io/satyrn-zen/"
 
 copyright = """
 Copyright &copy; 2026 Satyrn AI
