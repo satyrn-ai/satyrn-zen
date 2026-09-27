@@ -19,7 +19,7 @@ site_author = "Satyrn AI Contributors"
 # Read more: https://zensical.org/docs/setup/basics/#site_url
 # Required for navigation.instant: without it sitemap.xml is empty and instant
 # loading breaks internal navigation/links.
-site_url = "https://satyrn-ai.github.io/satyrn-zen/"
+site_url = "https://satyrn-ai.github.io/satyrn-zen"
 
 copyright = """
 Copyright &copy; 2026 Satyrn AI
