@@ -1,0 +1,21 @@
+{% extends "main.html" %}
+
+{#-
+  The landing page. `docs/index.md` opts in with `template: home.html`.
+  Everything else on the site keeps the normal docs layout.
+
+  The landing page runs full width, so it wants no sidebar on desktop -- but it
+  still needs the mobile drawer, which is the same element.
+
+  `hide: navigation` in front matter cannot express that. It sets `hidden` on
+  the primary sidebar, and below 1220px the primary sidebar IS the drawer, with
+  nothing in the theme's CSS restoring it: the hamburger opens onto an empty
+  panel. So the suppression has to be a media query (`.satyrn-home-nav` in
+  satyrn.css), and this wrapper is its hook. `display: contents` keeps the
+  sidebar a direct flex item of the grid, so the wrapper changes no layout;
+  `super()` renders the theme's own markup, so this does not have to be kept in
+  step with base.html.
+-#}
+{% block site_nav %}
+  <div class="satyrn-home-nav">{{ super() }}</div>
+{% endblock %}

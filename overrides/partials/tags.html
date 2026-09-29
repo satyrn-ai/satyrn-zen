@@ -1,0 +1,10 @@
+{%- if page.meta and page.meta.hide -%}
+  {%- set hidden = "hidden" if "tags" in page.meta.hide -%}
+{%- endif -%}
+{%- if tags -%}
+  <nav class="md-tags" {{ hidden }}>
+    {%- for tag in tags %}
+      <a href="{{ ('tags/' ~ tag.name ~ '/') | url }}" class="md-tag">{{ tag.name }}</a>
+    {% endfor -%}
+  </nav>
+{%- endif -%}

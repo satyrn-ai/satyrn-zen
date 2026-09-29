@@ -1,0 +1,47 @@
+{#-
+  The latest posts, as cards, at the foot of the landing page.
+
+  Same `nav`-as-database approach as the blog index, which means one more copy
+  of the `walk` macro: MiniJinja macros return rendered text, never a list, so
+  there is no collector to share (see docs/BLOG.md). The section renders nothing
+  at all until the first post exists, rather than an empty heading.
+
+  `| e` on every author-supplied value, for the reason given in main.html.
+-#}
+{%- macro walk(items, ns) -%}
+  {%- for it in items -%}
+    {%- if it.meta and it.meta.date %}{% set ns.items = ns.items + [it] %}{% endif -%}
+    {%- if it.children %}{{ walk(it.children, ns) }}{% endif -%}
+  {%- endfor -%}
+{%- endmacro -%}
+{%- set ns = namespace(items=[]) -%}
+{{- walk(nav.items, ns) -}}
+{%- set latest = (ns.items | sort(attribute="meta.date", reverse=true))[:config.extra.home_posts_count | d(3, true)] -%}
+{%- if latest -%}
+<section class="satyrn-latest" aria-labelledby="satyrn-latest-title">
+  <div class="satyrn-latest__head">
+    <h2 id="satyrn-latest-title">Latest from the blog</h2>
+    <a class="satyrn-arrow-link" href="{{ 'blog/' | url }}">All posts</a>
+  </div>
+  <ul class="satyrn-latest__grid">
+    {%- for post in latest %}
+    <li class="satyrn-card">
+      <p class="satyrn-card__meta"><time datetime="{{ post.meta.date }}">{{ post.meta.date }}</time></p>
+      {#- The title link is stretched over the whole card in CSS, so the card is
+          one target without nesting everything else inside an <a>. -#}
+      <h3 class="satyrn-card__title"><a href="{{ post.url | url }}">{{ post.title | e }}</a></h3>
+      {%- if post.meta.description %}
+      <p class="satyrn-card__summary">{{ post.meta.description | e }}</p>
+      {%- endif %}
+      {%- if post.meta.authors %}
+      <p class="satyrn-card__byline">
+        {%- for slug in post.meta.authors -%}
+          {%- if not loop.first %}, {% endif %}{{ config.extra.authors[slug].name | e }}
+        {%- endfor -%}
+      </p>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif -%}

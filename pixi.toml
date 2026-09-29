@@ -2,12 +2,26 @@
 authors = ["Carol Willing <carolcode@willingconsulting.com>"]
 channels = ["conda-forge"]
 name = "satyrn-zen"
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
 version = "0.1.0"
 
-[tasks]
-dev = "zensical serve"
-build = "zensical build"
+[tasks.dev]
+description = "Serve the site with live reload (default http://localhost:8001; satyrn-website uses 8000)"
+args = [{ arg = "addr", default = "localhost:8001" }]
+cmd = "python scripts/dev_config.py {{ addr }} && zensical serve -f .zensical.serve.toml -a {{ addr }}"
+
+[tasks.build]
+description = "Build the production site into ./site"
+cmd = "zensical build --strict"
+
+[tasks.clean]
+description = "Delete build output, caches and the generated dev config"
+cmd = "rm -rf site .cache .zensical.serve.toml"
+
+[tasks.rebuild]
+description = "Build from scratch, exactly as CI would"
+cmd = "zensical build --strict"
+depends-on = ["clean"]
 
 [dependencies]
 zensical = ">=0.0.51,<0.0.52"

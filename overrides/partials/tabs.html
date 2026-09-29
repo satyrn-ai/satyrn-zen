@@ -1,0 +1,124 @@
+{#-
+  The dropdown menu bar. Replaces the flat tab bar with a `<nav>` that sits
+  in the header row alongside the search box.
+
+  Uses the Popover API (`popover` attribute + `popovertarget` buttons) for
+  dropdown panels — Baseline 2024, zero-JS, built-in light dismiss, focus
+  trapping, and Escape-to-close.
+
+  Menu data comes from `extra.nav_menu` in zensical.toml. Each item can have
+  an optional `children` array for submenu links. Items with `url` link off-site.
+-#}
+{%- set menu = config.extra.nav_menu | d([], true) -%}
+{%- set nav_items = nav.items -%}
+
+{#- Recursively find a nav item by title, searching all nested children.
+     Stores the result in the passed namespace's `found` attribute. -#}
+{%- macro find_nav_item(items, title, ns) -%}
+  {%- for it in items -%}
+    {%- if it.title == title and not ns.found %}{% set ns.found = it %}{% endif -%}
+    {%- if it.children and not ns.found -%}
+      {%- set child_ns = namespace(found=none) -%}
+      {%- do find_nav_item(it.children, title, child_ns) -%}
+      {%- if child_ns.found and not ns.found %}{% set ns.found = child_ns.found %}{% endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endmacro -%}
+
+{#- Resolve the URL a nav item should link to. A page links to itself. A
+     section has no URL of its own, so it links to its index page if it has
+     one, otherwise to its first page (searching nested sections). Stores the
+     result in the passed namespace's `target` attribute. -#}
+{%- macro find_target_url(item, ns) -%}
+  {%- if item.url is not none -%}
+    {%- set ns.target = item.url -%}
+  {%- elif item.children -%}
+    {%- for child in item.children -%}
+      {%- if child.is_index and ns.target is none %}{% set ns.target = child.url %}{% endif -%}
+    {%- endfor -%}
+    {%- for child in item.children -%}
+      {%- if ns.target is none %}{% do find_target_url(child, ns) %}{% endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endmacro -%}
+
+<nav class="satyrn-menubar" aria-label="{{ lang.t('tabs') }}" data-md-component="tabs">
+  <ul class="satyrn-menubar__list">
+    {%- for item in menu -%}
+      {%- if item.children -%}
+        {#- Menu item with dropdown submenu -#}
+        <li class="satyrn-menubar__item satyrn-menubar__item--dropdown">
+          <button class="satyrn-menubar__toggle" id="toggle-{{ loop.index }}" popovertarget="menu-{{ loop.index }}" aria-expanded="false">
+            {{ item.title | e }}
+          </button>
+          <div id="menu-{{ loop.index }}" class="satyrn-menubar__panel" popover anchor="toggle-{{ loop.index }}">
+            <ul class="satyrn-menubar__sublist">
+              {%- for child in item.children -%}
+                {%- if child.url -%}
+                  {#- Off-site link -#}
+                  <li class="satyrn-menubar__subitem satyrn-menubar__subitem--external">
+                    <a href="{{ child.url }}" class="satyrn-menubar__sublink">
+                      {{ child.title | e }}
+                      <span class="satyrn-menubar__external-icon" aria-hidden="true">
+                        {% include ".icons/material/open-in-new.svg" %}
+                      </span>
+                    </a>
+                  </li>
+                {%- else -%}
+                  {#- Resolve against nav tree (recursive search) -#}
+                  {%- set wanted = child.page | d(child.title, true) -%}
+                  {%- set found_ns = namespace(found=none) -%}
+                  {%- do find_nav_item(nav_items, wanted, found_ns) -%}
+                  {%- if found_ns.found -%}
+                    {%- set tns = namespace(target=none) -%}
+                    {%- do find_target_url(found_ns.found, tns) -%}
+                    {%- if tns.target is not none -%}
+                      <li class="satyrn-menubar__subitem{% if found_ns.found.active %} satyrn-menubar__subitem--active{% endif %}">
+                        <a href="{{ tns.target | url }}" class="satyrn-menubar__sublink{% if tns.target == page.url %} satyrn-menubar__sublink--active{% endif %}">
+                          {{ child.title | e }}
+                        </a>
+                      </li>
+                    {%- endif -%}
+                  {%- else -%}
+                    {#- No matching nav page — render as placeholder -#}
+                    <li class="satyrn-menubar__subitem satyrn-menubar__subitem--placeholder">
+                      <span class="satyrn-menubar__sublink satyrn-menubar__sublink--placeholder">
+                        {{ child.title | e }}
+                      </span>
+                    </li>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          </div>
+        </li>
+      {%- elif item.url -%}
+        {#- Top-level off-site link -#}
+        <li class="satyrn-menubar__item satyrn-menubar__item--external">
+          <a href="{{ item.url }}" class="satyrn-menubar__link">
+            {{ item.title | e }}
+            <span class="satyrn-menubar__external-icon" aria-hidden="true">
+              {% include ".icons/material/open-in-new.svg" %}
+            </span>
+          </a>
+        </li>
+      {%- else -%}
+        {#- Top-level link, resolve against nav tree (recursive search) -#}
+        {%- set wanted = item.page | d(item.title, true) -%}
+        {%- set found_ns = namespace(found=none) -%}
+        {%- do find_nav_item(nav_items, wanted, found_ns) -%}
+        {%- if found_ns.found -%}
+          {%- set tns = namespace(target=none) -%}
+          {%- do find_target_url(found_ns.found, tns) -%}
+          {%- if tns.target is not none -%}
+            <li class="satyrn-menubar__item{% if found_ns.found.active %} satyrn-menubar__item--active{% endif %}">
+              <a href="{{ tns.target | url }}" class="satyrn-menubar__link{% if tns.target == page.url %} satyrn-menubar__link--active{% endif %}">
+                {{ item.title | e }}
+              </a>
+            </li>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+</nav>

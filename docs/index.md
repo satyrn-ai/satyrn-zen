@@ -1,3 +1,7 @@
+---
+template: home.html
+---
+
 # Welcome to Satyrn Zen
 
 The purpose of this site is to:

@@ -21,32 +21,31 @@ site_author = "Satyrn AI Contributors"
 # loading breaks internal navigation/links.
 site_url = "https://satyrn-ai.github.io/satyrn-zen"
 
+# Address for `zensical serve`. 8001 so it can run alongside satyrn-website (8000).
+dev_addr = "localhost:8001"
+
 copyright = """
-Copyright &copy; 2026 Satyrn AI
+&copy; 2026 Satyrn AI &middot; <a href="https://satyrn.ai">Satyrn.ai</a>
 """
 
+extra_css = ["stylesheets/satyrn.css"]
+extra_javascript = ["javascripts/blog-dates.js", "javascripts/space.js", "javascripts/crew.js"]
+
 nav = [
-    { "Home" = "https://satyrn.ai" },
     { "Zen" = "index.md" },
     { "Learn" = [
         { "Learn" = "learn/learn.md" },
-        { "Engineering system" = [
-            { "About engineering systems" = "learn/engineering-system.md" },
-        ] },
+        { "Engineering system" = [{ "About engineering systems" = "learn/engineering-system.md" }] },
         { "AI system" = [
             { "What is an AI system" = "learn/ai-system.md" },
             { "What is a token" = "learn/what-token.md" },
-            ]
-        },
+        ] },
         { "Taxonomies" = "learn/taxonomy.md" },
         { "Models" = "learn/models.md" },
         { "Agents and Harnesses" = "learn/agents.md" },
         { "Gallery of Learning Resources" = "learn/learn-community.md" },
-        { "Glossary" = [
-            { "Commonly used terms" = "learn/glossary.md" },
-        ]},
-        ]
-    },
+        { "Glossary" = [{ "Commonly used terms" = "learn/glossary.md" }] },
+    ] },
     { "Create" = [
         { "Create" = "create/create.md" },
         { "Create with Satyrn.ai" = "create/create-satyrn.md" },
@@ -54,39 +53,19 @@ nav = [
             { "Run a local model with Ollama" = "create/howto-ollama.md" },
             { "Run a local coding agent with Ollama in Docker" = "create/howto-ollama-docker-pi.md" },
             { "Add a browser chat to Ollama with Open WebUI" = "create/howto-ollama-open-webui.md" },
-          ]
-        },
+        ] },
         { "Gallery of Tutorials" = "create/create-community.md" },
-        ]
-    },
+    ] },
     { "Share" = [
         { "Share" = "share/share.md" },
         { "Satyrn.ai Share" = [
-           { "Satyrn team shares" = "share/share-satyrn.md" },
-           { "Share and find research" = "share/share-research.md" },
-        ]},
+            { "Satyrn team shares" = "share/share-satyrn.md" },
+            { "Share and find research" = "share/share-research.md" },
+        ] },
         { "Gallery of External Links" = "share/share-community.md" },
-        ]
-    },
+    ] },
 ]
 
-# With the "extra_css" option you can add your own CSS styling to customize
-# your Zensical project according to your needs. You can add any number of
-# CSS files.
-#
-# The path provided should be relative to the "docs_dir".
-#
-# Read more: https://zensical.org/docs/customization/#additional-css
-#
-#extra_css = ["stylesheets/extra.css"]
-
-# With the `extra_javascript` option you can add your own JavaScript to your
-# project to customize the behavior according to your needs.
-#
-# The path provided should be relative to the "docs_dir".
-#
-# Read more: https://zensical.org/docs/customization/#additional-javascript
-#extra_javascript = ["javascripts/extra.js"]
 
 # ----------------------------------------------------------------------------
 # Section for configuring theme options
@@ -104,10 +83,9 @@ nav = [
 # Read more:
 # - https://zensical.org/docs/customization/#extending-the-theme
 #
-#custom_dir = "overrides"
+custom_dir = "overrides"
 
-favicon = "assets/favicon.png"
-logo = "assets/satyrn-logo-light.svg"
+favicon = "assets/favicon.svg"
 language = "en"
 
 features = [
@@ -193,7 +171,7 @@ features = [
     # In order to provide a better user experience on slow connections when
     # using instant navigation, a progress indicator can be enabled.
     # https://zensical.org/docs/setup/navigation/#progress-indicator
-    "navigation.instant.progress",
+    #"navigation.instant.progress",
 
     # When navigation paths are activated, a breadcrumb navigation is rendered
     # above the title of each page
@@ -218,7 +196,7 @@ features = [
     # When sticky tabs are enabled, navigation tabs will lock below the header
     # and always remain visible when scrolling down.
     # https://zensical.org/docs/setup/navigation/#sticky-navigation-tabs
-    "navigation.tabs.sticky",
+    #"navigation.tabs.sticky",
 
     # A back-to-top button can be shown when the user, after scrolling down,
     # starts to scroll up again.
@@ -244,12 +222,12 @@ features = [
     # When navigation integration for the table of contents is enabled, it is
     # always rendered as part of the navigation sidebar on the left.
     # https://zensical.org/docs/setup/navigation/#navigation-integration
-    #"toc.integrate",
+    "toc.integrate",
 ]
 
 [project.theme.font]
-text = "Inter"
-code = "Jetbrains Mono"
+text = "Lora"
+code = "JetBrains Mono"
 
 # ----------------------------------------------------------------------------
 # In the "palette" subsection you can configure options for the color scheme.
@@ -261,21 +239,93 @@ code = "Jetbrains Mono"
 # - https://zensical.org/docs/setup/colors/
 # ----------------------------------------------------------------------------
 [[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
 scheme = "default"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
 [[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
 scheme = "slate"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
 
 # ----------------------------------------------------------------------------
 # The "extra" section contains miscellaneous settings.
 # ----------------------------------------------------------------------------
+[project.extra]
+
+# Matched against rendered page titles character for character. A title that
+# does not match is not an error: the item silently drops to the end of the
+# sidebar. Anything absent is appended, not hidden, so a new page never vanishes.
+nav_order = [
+    "Zen",
+    "Learn",
+    "Create",
+    "Share",
+]
+# Rendered as a single link rather than an expanded tree.
+nav_collapse = ["Learn", "Create", "Share"]
+
 [[project.extra.social]]
 icon = "fontawesome/brands/github"
 link = "https://github.com/satyrn-ai"
+
+# The dropdown menu bar, rendered by overrides/partials/tabs.html and injected
+# into the header row via overrides/partials/header.html. Each item can have
+# an optional `children` array for submenu links. An item with `url` links
+# off-site; an item with `page` resolves against the nav tree (defaulting to
+# `title` when `page` is omitted). A `page` that matches nothing drops the
+# item silently.
+#
+# The menu has three top-level items: Learn (dropdown), Create (dropdown),
+# and Share (dropdown).
+[[project.extra.nav_menu]]
+title = "Learn"
+children = [
+    { title = "Learn" },
+    { title = "Engineering system" },
+    { title = "AI system" },
+    { title = "Taxonomies" },
+    { title = "Models" },
+    { title = "Agents and Harnesses" },
+    { title = "Glossary" },
+]
+
+[[project.extra.nav_menu]]
+title = "Create"
+children = [
+    { title = "Create" },
+    { title = "Create with Satyrn.ai" },
+    { title = "How-to" },
+]
+
+[[project.extra.nav_menu]]
+title = "Share"
+children = [
+    { title = "Share" },
+    { title = "Satyrn.ai Share" },
+]
+
+[[project.extra.nav_menu]]
+title = "Satyrn.ai"
+url = "https://satyrn.ai"
+
+# ----------------------------------------------------------------------------
+# Validation. `invalid_links` and `invalid_link_anchors` are already on by
+# default, so this table only lists what differs: the reference and footnote
+# checks, which ship off. A dangling `[text][ref]` otherwise renders as literal
+# brackets on the page with no warning at all.
+# ----------------------------------------------------------------------------
+[project.validation]
+shadowed_definitions = true
+shadowed_footnotes = true
+unresolved_footnotes = true
+unresolved_references = true
 
 # ----------------------------------------------------------------------------
 # In this section you can configure the Markdown extensions that are used when

@@ -1,0 +1,17 @@
+{#-
+  One row of a listing. Expects the loop variable to be named `post`, which is
+  what `main.html` calls it.
+-#}
+<li class="satyrn-post">
+  <h2 class="satyrn-post__title"><a href="{{ post.url | url }}">{{ post.title | e }}</a></h2>
+  <p class="satyrn-post__meta">
+    <time datetime="{{ post.meta.date }}">{{ post.meta.date }}</time>
+    {%- for slug in post.meta.authors -%}
+      {%- set author = config.extra.authors[slug] %}
+      <span class="satyrn-post__author">{{ author.name | e }}</span>
+    {%- endfor -%}
+  </p>
+  {%- if post.meta.description -%}
+  <p class="satyrn-post__summary">{{ post.meta.description | e }}</p>
+  {%- endif -%}
+</li>

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{#-
+  Collects every `nav` node carrying a `date` into `ns.items`, depth first.
+
+  `nav` is the post database: Zensical has no plugin system, but templates get
+  the full tree with each node's front matter, so listings and the feed are a
+  filter over it. This macro is duplicated in `src/feed.xml` and
+  `partials/nav.html` because MiniJinja macros can only return rendered text,
+  never a list. The duplication is forced, not laziness.
+-#}
+{%- macro walk(items, ns) -%}
+  {%- for it in items -%}
+    {%- if it.meta and it.meta.date %}{% set ns.items = ns.items + [it] %}{% endif -%}
+    {%- if it.children %}{{ walk(it.children, ns) }}{% endif -%}
+  {%- endfor -%}
+{%- endmacro -%}
+
+{#-
+  Declared up front so the browser knows both schemes are supported before it
+  paints the canvas, which reduces the flash of un-themed content. Zensical
+  already sets the `color-scheme` CSS property per palette, but emits no meta tag.
+-#}
+{% block site_meta %}
+  <meta name="color-scheme" content="light dark">
+  {{ super() }}
+{% endblock %}
+
+{#-
+  Replaces the theme's font block rather than appending to it, so the two
+  Google families (text + code) arrive in ONE render-blocking request.
+
+  `preconnect` to fonts.googleapis.com matters as much as the gstatic one the
+  theme already emits: the stylesheet request is the first hop and it blocks
+  render, so paying DNS + TLS for it up front is the whole point.
+
+  The heading face (Triple Charm Sans) is NOT here -- it is self-hosted and
+  declared via @font-face in stylesheets/satyrn.css. It is preloaded below
+  because every page paints a heading in it above the fold, so we want its fetch
+  started without waiting for the CSS to parse. The `crossorigin` is required
+  even same-origin: font requests are made in CORS mode, and a preload without
+  it is treated as a separate request and downloaded twice. The other two Triple
+  Charm faces are deliberately not preloaded -- nothing renders in them yet.
+-#}
+{% block fonts %}
+  {% if config.theme.font != false %}
+    {% set text = config.theme.font.text | d("Inter", true) %}
+    {% set code = config.theme.font.code | d("JetBrains Mono", true) %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{
+        text | replace(' ', '+') }}:ital,wght@0,400..700;1,400..700&family={{
+        code | replace(' ', '+') }}:ital,wght@0,400..700;1,400..700&display=fallback">
+    <link rel="preload" href="{{ 'assets/fonts/triplecharm-sans-webfont.woff2' | url }}" as="font" type="font/woff2" crossorigin>
+    <style>:root{--md-text-font:"{{ text }}";--md-code-font:"{{ code }}"}</style>
+  {% endif %}
+{% endblock %}
+
+{#-
+  Link previews and feed autodiscovery.
+
+  MiniJinja autoescape is OFF, so every interpolation of author-supplied text
+  carries an explicit `| e`. A post titled `Prompting Q&A` otherwise breaks the
+  feed for every subscriber, and a quote in a `description` closes the
+  `content="` attribute early. URLs are deliberately left unescaped -- escaping
+  those corrupts the links.
+-#}
+{% block extrahead %}
+  {%- set meta = page.meta if page.meta else {} -%}
+  {%- set is_post = meta.date and meta.authors -%}
+  {%- set og_title = meta.title if meta.title else (page.title if page.title else config.site_name) -%}
+  {%- set og_desc = meta.description if meta.description else config.site_description -%}
+  {%- set og_image = meta.image if meta.image else config.extra.og_image -%}
+  <meta property="og:type" content="{{ 'article' if is_post else 'website' }}">
+  <meta property="og:title" content="{{ og_title | e }}">
+  <meta property="og:description" content="{{ og_desc | e }}">
+  <meta property="og:url" content="{{ page.canonical_url }}">
+  <meta property="og:site_name" content="{{ config.site_name | e }}">
+  {%- if og_image -%}
+  <meta property="og:image" content="{{ config.site_url }}{{ og_image }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {%- else -%}
+  <meta name="twitter:card" content="summary">
+  {%- endif -%}
+  {%- if is_post -%}
+  <meta property="article:published_time" content="{{ meta.date }}T00:00:00Z">
+  {%- for slug in meta.authors -%}
+  <meta property="article:author" content="{{ config.extra.authors[slug].name | e }}">
+  {%- endfor -%}
+  {%- set creator = config.extra.authors[meta.authors[0]] -%}
+  {%- if creator.fediverse -%}
+  <meta name="fediverse:creator" content="{{ creator.fediverse }}">
+  {%- endif -%}
+  {%- endif -%}
+  <link rel="alternate" type="application/atom+xml" title="{{ config.site_name }}" href="{{ config.site_url }}feed.xml">
+{% endblock %}
+
+{#-
+  Byline, then the page's own prose, then a listing if the page asks for one.
+
+  `index: posts | author | tag` in front matter is what opts a page in, so the
+  blog index, each author page and each tag page share this one block rather
+  than having a template each.
+-#}
+{% block content %}
+  {%- if page.meta and page.meta.date and page.meta.authors -%}
+    {% include "partials/post-byline.html" %}
+  {%- endif -%}
+  {{ super() }}
+  {%- if page.meta and page.meta.index -%}
+    {%- set ns = namespace(items=[]) -%}
+    {{- walk(nav.items, ns) -}}
+    <ul class="satyrn-posts">
+    {%- for post in ns.items | sort(attribute="meta.date", reverse=true) -%}
+      {%- if page.meta.index == "posts" -%}
+        {% include "partials/post-item.html" %}
+      {%- elif page.meta.index == "author" and post.meta.authors and page.meta.author in post.meta.authors -%}
+        {% include "partials/post-item.html" %}
+      {%- elif page.meta.index == "tag" and post.meta.tags and page.meta.tag in post.meta.tags -%}
+        {% include "partials/post-item.html" %}
+      {%- endif -%}
+    {%- endfor -%}
+    </ul>
+  {%- endif -%}
+{% endblock %}
+
+{#-
+  Suppress the default tab bar below the header. The menu bar now lives inside
+  the header row (via custom header.html), so the separate `.md-tabs` block
+  must be empty to avoid rendering a duplicate or empty bar.
+-#}
+{% block tabs %}{% endblock %}
