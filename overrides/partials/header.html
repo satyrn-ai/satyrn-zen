@@ -1,0 +1,93 @@
+{#-
+  Custom header that injects the dropdown menu bar into the header row.
+
+  Replaces the theme's header.html to place the menu bar alongside the search
+  box, achieving the "all on one row" layout. The menu bar is rendered by
+  partials/tabs.html (now a dropdown menubar, not flat tabs).
+
+  Below 1220px (mobile), the menu bar hides and the mobile drawer handles
+  navigation instead.
+-#}
+{% set class = "md-header" %}
+{% if "navigation.tabs.sticky" in features %}
+  {% set class = class ~ " md-header--shadow md-header--lifted" %}
+{% elif "navigation.tabs" not in features %}
+  {% set class = class ~ " md-header--shadow" %}
+{% endif %}
+<header class="{{ class }}" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="{{ lang.t('header') }}">
+    <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-header__button md-logo" aria-label="{{ config.site_name }}" data-md-component="logo">
+      {% include "partials/logo.html" %}
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="{{ lang.t('nav') }}">
+      {% set icon = config.theme.icon.menu or "material/menu" %}
+      {% include ".icons/" ~ icon ~ ".svg" %}
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-header__ellipsis">
+              {{ config.site_name }}
+            </a>
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            {% if page.meta and page.meta.title %}
+              {{ page.meta.title }}
+            {% else %}
+              {{ page.title }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+    {#- Dropdown menu bar injected here, before search -#}
+    {% include "partials/tabs.html" %}
+    {% if "search" in config.plugins %}
+      {% set search = config.plugins["search"] | attr("config") %}
+      {% if search.enabled %}
+        <label class="md-header__button md-icon" for="__search" aria-label="{{ lang.t('search') }}">
+          {% set icon = config.theme.icon.search or "material/magnify" %}
+          {% include ".icons/" ~ icon ~ ".svg" %}
+        </label>
+        {% include "partials/search.html" %}
+      {% endif %}
+    {% endif %}
+    {% if config.theme.palette %}
+      {% if not config.theme.palette is mapping %}
+        {% include "partials/palette.html" %}
+      {% endif %}
+    {% endif %}
+    {% if not config.theme.palette is mapping %}
+      {% include "partials/javascripts/palette.html" %}
+    {% endif %}
+    {% if config.extra.alternate %}
+      {% include "partials/alternate.html" %}
+    {% endif %}
+    <div class="md-header__source">
+      {% if config.repo_url %}
+        {% include "partials/source.html" %}
+      {% endif %}
+    </div>
+  </nav>
+  {#- Position popovers below their toggle buttons and keep aria-expanded in sync -#}
+  <script>
+    document.querySelectorAll(".satyrn-menubar__toggle").forEach(function(button) {
+      var panelId = button.getAttribute("popovertarget");
+      var panel = document.getElementById(panelId);
+      if (panel) {
+        panel.addEventListener("toggle", function() {
+          button.setAttribute("aria-expanded", panel.matches(":popover-open") ? "true" : "false");
+          if (panel.matches(":popover-open")) {
+            var rect = button.getBoundingClientRect();
+            panel.style.position = "absolute";
+            panel.style.top = (rect.bottom + window.scrollY) + "px";
+            panel.style.left = (rect.left + window.scrollX) + "px";
+          }
+        });
+      }
+    });
+  </script>
+</header>

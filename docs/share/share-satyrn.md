@@ -1,6 +1,6 @@
 # Share work from the Satyrn AI team
 
-!!! note "Satyrn.AI recommended resources"
+!!! note "Satyrn AI recommended resources"
 
     This page contains information that has been created by members of the satyrn.ai team.
 

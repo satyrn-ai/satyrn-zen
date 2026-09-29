@@ -1,0 +1,165 @@
+{% import "partials/nav-item.html" as item with context %}
+{%- macro walk(items, ns) -%}
+  {%- for it in items -%}
+    {%- if it.meta and it.meta.date %}{% set ns.items = ns.items + [it] %}{% endif -%}
+    {%- if it.children %}{{ walk(it.children, ns) }}{% endif -%}
+  {%- endfor -%}
+{%- endmacro -%}
+{#- Does this page have headings below its title?
+
+    partials/toc.html emits its <nav> wrapper unconditionally and only fills it
+    when there is something to put in it, so including it for a page with no
+    sub-headings leaves an empty landmark behind -- announced to screen readers,
+    and carrying 7px of margin that shifts every item below it as the active
+    page changes. The theme's own nav-item.html guards the include for exactly
+    this reason; anything here that includes it has to guard it too.
+
+    Same derivation the theme uses: the page title is a level 1 entry wrapping
+    the rest, so what matters is its children. -#}
+{%- set tocns = namespace(items=page.toc | d([], true)) -%}
+{%- set toc_root = tocns.items | first -%}
+{%- if toc_root and toc_root.level == 1 %}{% set tocns.items = toc_root.children %}{% endif -%}
+{%- set has_toc = tocns.items | length > 0 -%}
+{%- set class = "md-nav md-nav--primary" -%}
+{%- if "navigation.tabs" in features -%}
+  {%- set class = class ~ " md-nav--lifted" -%}
+{%- endif -%}
+{%- if "toc.integrate" in features -%}
+  {%- set class = class ~ " md-nav--integrated" -%}
+{%- endif -%}
+<nav class="{{ class }}" aria-label="{{ lang.t('nav') }}" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-nav__button md-logo" aria-label="{{ config.site_name }}" data-md-component="logo">
+      {% include "partials/logo.html" %}
+      {{ config.site_name }}
+    </a>
+  </label>
+  {%- if config.repo_url -%}
+    <div class="md-nav__source">
+      {% include "partials/source.html" %}
+    </div>
+  {%- endif -%}
+  {%- set order = config.extra.nav_order | d([], true) -%}
+  {#- `nav_hide` drops an item from this list, which is the sidebar on desktop
+      and the whole of the navigation in the mobile drawer -- there are no tabs
+      below 1220px. The `or it.active` is load-bearing: on a hidden item's own
+      page it is the only thing in the sidebar, so dropping it unconditionally
+      would leave that page with an empty 12rem gutter and no way back. -#}
+  {%- set hide = config.extra.nav_hide | d([], true) -%}
+  {%- set ons = namespace(items=[]) -%}
+  {%- for title in order -%}
+    {%- for it in nav.items -%}
+      {%- if it.title == title and (it.title not in hide or it.active) %}{% set ons.items = ons.items + [it] %}{% endif -%}
+    {%- endfor -%}
+  {%- endfor -%}
+  {%- for it in nav.items -%}
+    {%- if it.title not in order and (it.title not in hide or it.active) %}{% set ons.items = ons.items + [it] %}{% endif -%}
+  {%- endfor -%}
+  <ul class="md-nav__list" data-md-scrollfix>
+    {%- for nav_item in ons.items -%}
+      {%- set tns = namespace(target=nav_item.url) -%}
+      {%- if not tns.target -%}
+        {%- for child in nav_item.children -%}
+          {% if child.is_index and not tns.target %}{% set tns.target = child.url %}{% endif %}
+        {%- endfor -%}
+      {%- endif -%}
+      {%- if config.extra.nav_recent and nav_item.title in config.extra.nav_recent and tns.target -%}
+        {%- set pns = namespace(items=[]) -%}
+        {{- walk(nav_item.children, pns) -}}
+        {%- set recent = (pns.items | sort(attribute="meta.date", reverse=true))[:config.extra.nav_recent_count | d(5, true)] -%}
+        {#- `md-nav__item--active` is what `md-nav--lifted` keys off to decide
+            which top-level item survives on desktop. This branch builds its own
+            markup rather than going through nav-item.html, so without the class
+            the Blog tab would render an empty sidebar. -#}
+        <li class="md-nav__item{% if nav_item.active %} md-nav__item--active{% endif %}">
+          <a href="{{ tns.target | url }}" class="md-nav__link{% if tns.target == page.url %} md-nav__link--active{% endif %}">
+            <span class="md-ellipsis">{{ nav_item.title }}</span>
+          </a>
+          {%- if pns.items -%}
+            {%- set ins = namespace(listed=false) -%}
+            <ul class="md-nav__list">
+              {%- for post in recent -%}
+                {%- if post.url == page.url %}{% set ins.listed = true %}{% endif -%}
+                <li class="md-nav__item{% if post.url == page.url %} md-nav__item--active{% endif %}">
+                  <a href="{{ post.url | url }}" class="md-nav__link{% if post.url == page.url %} md-nav__link--active{% endif %}">
+                    <span class="md-ellipsis">{{ post.title }}</span>
+                  </a>
+                  {#- With `toc.integrate` there is no right-hand sidebar, so
+                      this is the only place a post's headings appear. -#}
+                  {%- if post.url == page.url and has_toc %}{% include "partials/toc.html" %}{% endif -%}
+                </li>
+              {%- endfor -%}
+              {#- An older post falls outside the slice above, and would then
+                  read as a page with no navigation at all. Append it. -#}
+              {%- if nav_item.active and page.meta and page.meta.date and not ins.listed -%}
+                <li class="md-nav__item md-nav__item--active">
+                  <a href="{{ page.url | url }}" class="md-nav__link md-nav__link--active">
+                    <span class="md-ellipsis">{{ page.title }}</span>
+                  </a>
+                  {%- if has_toc %}{% include "partials/toc.html" %}{% endif -%}
+                </li>
+              {%- endif -%}
+            </ul>
+          {%- endif -%}
+        </li>
+      {%- elif config.extra.nav_collapse and nav_item.title in config.extra.nav_collapse and tns.target -%}
+        {#- Same reason as above: hand-built markup still has to carry the class
+            `md-nav--lifted` filters on. -#}
+        <li class="md-nav__item{% if nav_item.active %} md-nav__item--active{% endif %}">
+          <a href="{{ tns.target | url }}" class="md-nav__link{% if tns.target == page.url %} md-nav__link--active{% endif %}">
+            <span class="md-ellipsis">{{ nav_item.title }}</span>
+          </a>
+          {%- if nav_item.active and has_toc %}{% include "partials/toc.html" %}{% endif -%}
+        </li>
+      {%- else -%}
+        {%- set path = "__nav_" ~ loop.index -%}
+        {{ item.render(nav_item, path, 1) }}
+      {%- endif -%}
+    {%- endfor -%}
+    {#- Off-site tabs from the menu bar (`nav_menu` entries with a `url`).
+        Never active, so `md-nav--lifted` hides them from the desktop sidebar,
+        where the header menu bar already carries them; below 1220px this drawer
+        is the only navigation. Also include menu items with children so the
+        mobile drawer has access to all menu links. -#}
+    {%- for item in config.extra.nav_menu | d([], true) -%}
+      {%- if item.url -%}
+        <li class="md-nav__item md-nav__item--external">
+          <a href="{{ item.url }}" class="md-nav__link">
+            <span class="md-ellipsis">{{ item.title | e }}</span>
+          </a>
+        </li>
+      {%- elif item.children -%}
+        {%- for child in item.children -%}
+          {%- if child.url -%}
+            <li class="md-nav__item md-nav__item--external">
+              <a href="{{ child.url }}" class="md-nav__link">
+                <span class="md-ellipsis">{{ child.title | e }}</span>
+              </a>
+            </li>
+          {%- else -%}
+            {%- set wanted = child.page | d(child.title, true) -%}
+            {%- set ns = namespace(found=none) -%}
+            {%- for it in nav.items -%}
+              {%- if it.title == wanted and not ns.found %}{% set ns.found = it %}{% endif -%}
+            {%- endfor -%}
+            {%- if ns.found -%}
+              {%- set tns = namespace(target=ns.found.url) -%}
+              {%- if tns.target is none -%}
+                {%- for child_page in ns.found.children -%}
+                  {% if child_page.is_index and tns.target is none %}{% set tns.target = child_page.url %}{% endif %}
+                {%- endfor -%}
+              {%- endif -%}
+              {%- if tns.target is not none -%}
+                <li class="md-nav__item{% if ns.found.active %} md-nav__item--active{% endif %}">
+                  <a href="{{ tns.target | url }}" class="md-nav__link{% if tns.target == page.url %} md-nav__link--active{% endif %}">
+                    <span class="md-ellipsis">{{ child.title | e }}</span>
+                  </a>
+                </li>
+              {%- endif -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+</nav>

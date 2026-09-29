@@ -1,0 +1,88 @@
+{#-
+  The previous/next footer links, filtered.
+
+  `page.previous_page` and `page.next_page` come from the directory-derived
+  tree, in document order, and know nothing about `nav_order` or `nav_hide`.
+  So the last post's "Next" was `Tags` -- a section deliberately absent from
+  both the tab bar and the sidebar, which made the footer the one piece of
+  chrome still pointing at it, and the only way to arrive there by accident.
+
+  Rather than name Tags and Authors again here, this collects every URL under a
+  `nav_hide` section and drops a link into one. The three places that decide
+  what belongs in the chrome then stay in step from one setting.
+
+  A post at the end of the run now has no "Next" at all, which is the intent:
+  the footer moves between posts, or it stops.
+
+  The test runs both ways. A hidden section is an archive reached from a chip or
+  a byline, not a stop on a route through the site, so its own pages get no
+  previous/next either -- otherwise `/tags/` kept a lone "Previous" back into
+  the posts, which is the same accident in the opposite direction.
+-#}
+{%- macro collect(items, ns) -%}
+  {%- for it in items -%}
+    {%- if it.url is not none %}{% set ns.urls = ns.urls + [it.url] %}{% endif -%}
+    {%- if it.children %}{{ collect(it.children, ns) }}{% endif -%}
+  {%- endfor -%}
+{%- endmacro -%}
+{%- set hidden_titles = config.extra.nav_hide | d([], true) -%}
+{%- set hns = namespace(urls=[]) -%}
+{%- for it in nav.items -%}
+  {%- if it.title in hidden_titles %}{{ collect([it], hns) }}{% endif -%}
+{%- endfor -%}
+{%- set in_hidden = page.url in hns.urls -%}
+{%- set prev_page = page.previous_page if not in_hidden and page.previous_page and page.previous_page.url not in hns.urls else none -%}
+{%- set next_page = page.next_page if not in_hidden and page.next_page and page.next_page.url not in hns.urls else none -%}
+<footer class="md-footer">
+  {% if "navigation.footer" in features %}
+    {% if prev_page or next_page %}
+      {% if page.meta and page.meta.hide %}
+        {% set hidden = "hidden" if "footer" in page.meta.hide %}
+      {% endif %}
+      <nav class="md-footer__inner md-grid" aria-label="{{ lang.t('footer') }}" {{ hidden }}>
+        {% if prev_page %}
+          {% set direction = lang.t("footer.previous") %}
+          <a href="{{ prev_page.url | url }}" class="md-footer__link md-footer__link--prev" aria-label="{{ direction }}: {{ prev_page.title | e }}">
+            <div class="md-footer__button md-icon">
+              {% set icon = config.theme.icon.previous or "material/arrow-left" %}
+              {% include ".icons/" ~ icon ~ ".svg" %}
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                {{ direction }}
+              </span>
+              <div class="md-ellipsis">
+                {{ prev_page.title }}
+              </div>
+            </div>
+          </a>
+        {% endif %}
+        {% if next_page %}
+          {% set direction = lang.t("footer.next") %}
+          <a href="{{ next_page.url | url }}" class="md-footer__link md-footer__link--next" aria-label="{{ direction }}: {{ next_page.title | e }}">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                {{ direction }}
+              </span>
+              <div class="md-ellipsis">
+                {{ next_page.title }}
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              {% set icon = config.theme.icon.next or "material/arrow-right" %}
+              {% include ".icons/" ~ icon ~ ".svg" %}
+            </div>
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      {% include "partials/copyright.html" %}
+      {% if config.extra.social %}
+        {% include "partials/social.html" %}
+      {% endif %}
+    </div>
+  </div>
+</footer>

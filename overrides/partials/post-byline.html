@@ -1,0 +1,33 @@
+{#-
+  Sits above the h1, because the `content` block can only wrap the page's own
+  markdown, never reach inside it. Styled as an eyebrow to suit.
+
+  `| e` on every author-supplied value: autoescape is off, so a name like
+  `Q&A Team` otherwise emits invalid markup.
+-#}
+<div class="satyrn-byline">
+  <ul class="satyrn-byline__authors">
+    {%- for slug in page.meta.authors -%}
+      {%- set author = config.extra.authors[slug] -%}
+      <li class="satyrn-byline__author">
+        {#- Decorative: the name it belongs to is right beside it, so repeating
+            it in alt text would only make a screen reader say it twice. The
+            box is pinned in CSS rather than by width/height attributes,
+            because the file's real dimensions are not knowable here. -#}
+        {%- if author.avatar %}<img class="satyrn-byline__avatar" src="{{ author.avatar | url }}" alt="" loading="lazy">{% endif -%}
+        {%- if author.url -%}
+          {#- Author URLs are external personal sites, so they open in a new tab.
+              `rel=noopener` closes the reverse-window handle; the aria-label
+              keeps the visible name (WCAG 2.5.3) while announcing the new tab. -#}
+          <a class="satyrn-byline__link" href="{{ author.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ author.name | e }} (opens in a new tab)">{{ author.name | e }}</a>
+        {%- else -%}
+          <span>{{ author.name | e }}</span>
+        {%- endif -%}
+        {%- if author.title %}<span class="satyrn-byline__title">{{ author.title | e }}</span>{% endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+  {#- Stays an ISO date: blog-dates.js rewrites it into the reader's locale,
+      and this is what a reader without JavaScript gets instead. -#}
+  <time class="satyrn-byline__date" datetime="{{ page.meta.date }}">{{ page.meta.date }}</time>
+</div>
