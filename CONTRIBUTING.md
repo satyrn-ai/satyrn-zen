@@ -9,7 +9,7 @@ Clone this repo to your system.
 ## View the documentation from the source files
 
 1. Enter `uvx zensical serve` into your terminal at the root of the repo.
-2. Navigate your browser to <http::/localhost:8000>.
+2. Navigate your browser to <http://localhost:8001>.
 
 ## Contribute to the Satyrn Zen
 
@@ -28,7 +28,10 @@ pixi run dev
 
 This will build an interactive, development web server.
 
-3.  Navigate your browser to <http::/localhost:8000>.
+3.  Navigate your browser to <http://localhost:8001>.
+
+To serve on another address, pass it along, e.g. `pixi run dev 0.0.0.0:9000`.
+Changes to `zensical.toml` need a server restart to take effect.
 
 ### Build the site without running a server.
 
