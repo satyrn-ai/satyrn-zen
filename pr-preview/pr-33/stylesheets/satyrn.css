@@ -1,0 +1,2352 @@
+/* ==========================================================================
+   Satyrn brand layer
+
+   Three kinds of selector live here, and the difference matters:
+
+   1. Theme overrides   .md-*            Zensical's own BEM classes.
+   2. Our blocks        .satyrn-*        BEM, for markup we hand-write in
+                                         overrides/*.html.
+   3. Scoped descendants                 `.satyrn-pillars h3` and friends.
+                                         The markdown parser emits those tags,
+                                         so there is nowhere to hang a class
+                                         without putting styling hooks in the
+                                         copy. Kept deliberately shallow.
+
+   Scheme-dependent tweaks that span several blocks (the logo halo) are keyed
+   off the `[data-md-color-scheme]` attribute rather than owned by one block.
+
+   IMPORTANT: Zensical sets `data-md-color-scheme` on <body>, not <html>, so
+   scheme selectors must NOT be written as `:root[data-md-color-scheme=...]` —
+   that never matches.
+   ========================================================================== */
+
+/* --------------------------------------------------------- color-scheme -- */
+
+/* Zensical declares `color-scheme` on <body>, but the browser only themes the
+   root scrollbar and page canvas from the *root* element — verified: with slate
+   pinned, the computed `color-scheme` on <html> is `normal`. Mirror it up. */
+html:has(> body[data-md-color-scheme="default"]) { color-scheme: light; }
+html:has(> body[data-md-color-scheme="slate"]) { color-scheme: dark; }
+
+/* --------------------------------------------------------------- fonts -- */
+
+/* Triple Charm Font Trio (BilberryCreates, purchased via Creative Market under
+   the Webfont license). Self-hosted from `assets/fonts/` rather than a font
+   CDN: the licence covers @font-face embedding, and serving the vendor's own
+   webfont build as-is keeps us clear of the "no modifying the font files"
+   clause that converting or subsetting would brush against.
+
+   The `src` paths are relative to THIS stylesheet (`stylesheets/satyrn.css`),
+   not the page, hence the `../assets` hop.
+
+   Each face ships a single upright master at weight-class 400 -- there is no
+   bold file -- so the faces are declared at 400 and headings must ask for 400.
+   Requesting a heavier weight would make the browser synthesise a faux-bold and
+   smear this display face. The vendor's internal name records are stripped, so
+   the family name below is one we assign; nothing does a `local()` lookup.
+
+   Only "Triple Charm Sans" is rendered today (headings, below). The outline and
+   script faces are declared so they are ready to use -- an unreferenced
+   @font-face costs nothing, the file is fetched only when something is actually
+   painted in it -- and wired to tokens for when the site adopts them:
+   outline for special display text, script for human names and flourishes. */
+@font-face {
+  font-family: "Triple Charm Sans";
+  src: url("../assets/fonts/triplecharm-sans-webfont.woff2") format("woff2"),
+       url("../assets/fonts/triplecharm-sans-webfont.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Triple Charm Outline";
+  src: url("../assets/fonts/triplecharm-sansoutline-webfont.woff2") format("woff2"),
+       url("../assets/fonts/triplecharm-sansoutline-webfont.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Triple Charm Script";
+  src: url("../assets/fonts/triplecharm-script-webfont.woff2") format("woff2"),
+       url("../assets/fonts/triplecharm-script-webfont.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------------------------------------------------------------- tokens -- */
+
+/* Canonical values from the design team's BRAND_COLOURS.md. The main site's
+   hue is yellow, and for now it is the ONLY hue in the UI: pink, blue and green
+   belong to other surfaces and arrive later.
+
+   Yellow has three tiers, and each is only valid for the job it was checked
+   against. Mixing them up is the easiest way to ship an unreadable page:
+
+     --satyrn-yellow-dark    #e3d678  text and logo on dark        8.40:1
+     --satyrn-yellow-ui      #816928  large text, icons, borders   4.19:1 on light
+                                       (NOT body text)
+     --satyrn-yellow-text    #433715  body-size text on light      9.30:1
+
+   The semantic tokens further down pick the right tier per scheme, so blocks
+   ask for `--satyrn-accent` or `--satyrn-accent-text` and never a raw tier. */
+:root {
+  /* Headings. The sans falls back through the body font, then a generic, while
+     its file loads or if it ever fails to. */
+  --satyrn-font-display: "Triple Charm Sans", var(--md-text-font, "Reddit Sans"), sans-serif;
+
+  /* Not yet rendered anywhere -- see the @font-face note above. Kept as tokens
+     so their first use is a one-line reference, not a font-stack decision. */
+  --satyrn-font-outline: "Triple Charm Outline", var(--md-text-font, "Reddit Sans"), sans-serif;
+  --satyrn-font-script: "Triple Charm Script", cursive;
+
+  /* Theme backgrounds. */
+  --satyrn-greige: #efe4d2;
+  --satyrn-charcoal: #383330;
+
+  /* Yellow tiers, see above. */
+  --satyrn-yellow-dark: #e3d678;
+  --satyrn-yellow-ui: #816928;
+  --satyrn-yellow-text: #433715;
+
+  /* Secondary hues from the design team's BRAND_COLOURS.md. Each has the same
+     three tiers as yellow (light / mid / dark). Yellow stays the primary UI
+     hue; these arrive per-surface -- blue is the first in use, for link
+     underlines. Pick a tier by the job and check its contrast, exactly as with
+     yellow. */
+  --satyrn-blue-light: #45a3e9;
+  --satyrn-blue-mid: #0b75c3;
+  --satyrn-blue-dark: #1c3d65;
+
+  --satyrn-pink-light: #f66fbf;
+  --satyrn-pink-mid: #cf1e87;
+  --satyrn-pink-dark: #6c1d4b;
+
+  --satyrn-green-light: #3ac595;
+  --satyrn-green-mid: #3d6859;
+  --satyrn-green-dark: #1a4234;
+
+  /* The logo ring. Tan is dark mode only (4.71:1); on light the ring is the
+     charcoal. */
+  --satyrn-ring-dark: #b99a73;
+
+  --satyrn-radius: 0.5rem;
+  --satyrn-radius-lg: 0.9rem;
+
+  /* Link underline (native text-decoration). One set of knobs for every text
+     link; see the shared rule near the end of the file. Colour is per scheme;
+     it swaps to a second blue on hover with no animation. */
+  --satyrn-underline-thickness: 1.5px;
+  --satyrn-underline-offset: 0.15em;
+
+  /* ---- Type scale ------------------------------------------------------
+     One golden-derived modular scale drives every text size, so there are a
+     handful of named sizes instead of a dozen ad-hoc rem values. --type-ratio
+     is the single knob: sqrt(phi) = 1.272 means every TWO steps make a full
+     golden ratio (phi), which keeps h1-h6 usable rather than enormous. Sizes
+     are rem, so they still ride the theme's responsive root; the RATIO between
+     them is what is fixed, and that is the point. Change --type-ratio or
+     --type-base and the whole ladder reflows. Preview it at /design/typography/.
+     px values below are at the theme's default 125% root (1rem = 20px). */
+  --type-base: 1rem;
+  --type-ratio: 1.272;
+  --fs-xs: calc(var(--type-base) / var(--type-ratio));   /* ~15.7px  meta, captions, tags, byline */
+  --fs-body: var(--type-base);                           /*  20px    body, list items */
+  --fs-lg: calc(var(--type-base) * var(--type-ratio));   /* ~25.4px  h4, lead-in */
+  --fs-xl: calc(var(--fs-lg) * var(--type-ratio));       /* ~32.4px  h3  (= phi x body) */
+  --fs-2xl: calc(var(--fs-xl) * var(--type-ratio));      /* ~41.2px  h2 */
+  --fs-3xl: calc(var(--fs-2xl) * var(--type-ratio));     /* ~52.4px  h1  (= phi^2 x body) */
+
+  /* Two leading values: one for running copy, one for headings. */
+  --lh-body: 1.55;
+  --lh-heading: 1.15;
+
+  /* Weight: body copy is 400; everything that needs to stand out uses ONE
+     emphasis weight, so there is no 600-vs-700 sprawl across the UI. Change
+     this single knob to reweight every emphasis at once. Headings set their
+     own weight (the display face is 400-only; the body-face h3/h4 are 700). */
+  --weight-body: 400;
+  --weight-emphasis: 700;
+}
+
+[data-md-color-scheme="default"] {
+  --md-default-bg-color: var(--satyrn-greige);
+  --md-default-fg-color: #1f1c1a;
+  --md-default-fg-color--light: #4f4a44;               /* 5.61:1 */
+  --md-default-fg-color--lighter: rgb(56 51 48 / 40%);
+  --md-default-fg-color--lightest: rgb(56 51 48 / 14%);
+
+  --md-primary-fg-color: var(--satyrn-charcoal);
+  --md-primary-fg-color--light: #4f4a44;
+  --md-primary-fg-color--dark: #1f1c1a;
+  --md-primary-bg-color: var(--satyrn-greige);
+  --md-primary-bg-color--light: rgb(206 208 195 / 70%);
+
+  /* Eight theme components use this: the header, the mobile drawer, the
+     back-to-top button, the search button, the consent overlay. Left at the
+     theme's white-at-70% it put white translucency over the greige page. */
+  --md-default-bg-color--light: rgb(206 208 195 / 70%);
+
+  --md-accent-fg-color: var(--satyrn-yellow-text);
+  --md-accent-fg-color--transparent: rgb(127 116 53 / 12%);
+
+  --md-typeset-color: #1f1c1a;                         /* 10.84:1 */
+  --md-typeset-a-color: var(--satyrn-yellow-text);     /* 9.30:1 */
+  --md-code-bg-color: #dcded3;
+  --md-code-fg-color: #1f1c1a;
+
+  /* The docs footer sits on the page background, like the landing page's. */
+  --md-footer-bg-color: var(--satyrn-greige);
+  --md-footer-bg-color--dark: var(--satyrn-greige);
+  --md-footer-fg-color: #1f1c1a;
+  --md-footer-fg-color--light: #4f4a44;
+  --md-footer-fg-color--lighter: #4f4a44;
+
+  /* Semantic. */
+  --satyrn-heading: var(--satyrn-charcoal);            /* 7.98:1 */
+  --satyrn-accent: var(--satyrn-yellow-ui);            /* 4.19:1, large/UI only */
+  --satyrn-accent-text: var(--satyrn-yellow-text);     /* 9.30:1 */
+  /* CTA accent (buttons, arrow-link): the link blue, mid on light. */
+  --satyrn-cta: var(--satyrn-blue-mid);
+  /* Link underline: light blue at rest, mid on hover. */
+  --satyrn-underline: var(--satyrn-blue-light);        /* 2.18:1 on cream */
+  --satyrn-underline-hover: var(--satyrn-blue-mid);    /* 3.84:1 on cream */
+  --satyrn-surface: #dcded3;
+  --satyrn-border: rgb(56 51 48 / 16%);
+  --satyrn-border-strong: rgb(56 51 48 / 38%);
+  /* Borders that identify a control need 3:1 (WCAG 1.4.11). */
+  --satyrn-control-border: #6b655f;
+
+  /* Primary button: charcoal with a yellow label on light, where a yellow fill
+     would sit at 1.06:1 against the greige page and all but vanish. */
+  --satyrn-btn-bg: var(--satyrn-charcoal);
+  --satyrn-btn-bg-hover: #1f1c1a;
+  --satyrn-btn-fg: var(--satyrn-yellow-dark);          /* 8.40:1 */
+
+  /* The mark: ring in the scheme's ring colour, planet in the brand hue. */
+  --satyrn-mark-body: var(--satyrn-charcoal);
+  --satyrn-mark-accent: var(--satyrn-yellow-ui);
+
+  /* The hero's space band (blocks: hero, space): the light logo, and the
+     starfield inverted to charcoal on the greige page. */
+  --satyrn-space-star: rgb(56 51 48 / 45%);
+  --satyrn-space-star-strong: rgb(56 51 48 / 70%);
+  --satyrn-space-star-bright: var(--satyrn-yellow-ui);
+  --satyrn-space-ink: var(--satyrn-charcoal);
+  --satyrn-space-orbit: var(--satyrn-charcoal);
+  --satyrn-space-halo: rgb(127 116 53 / 18%);
+  --satyrn-space-halo-soft: rgb(127 116 53 / 7%);
+
+  /* The offset "echo" layer behind article titles. */
+  --satyrn-heading-echo: var(--satyrn-yellow-dark);
+
+  /* Kept for the blog blocks, which predate the semantic names above. */
+  --satyrn-card-bg: var(--satyrn-surface);
+}
+
+/* `--md-hue` drives every colour the slate scheme derives in HSL -- code
+   backgrounds, kbd keys, table rules, shadows. Setting it warm harmonises all
+   of them at once; only the tokens needing exact brand values are listed. */
+[data-md-color-scheme="slate"] {
+  --md-hue: 25;
+
+  --md-default-bg-color: var(--satyrn-charcoal);
+  --md-default-fg-color: #f2efe8;
+  --md-default-fg-color--light: #c2baaf;               /* 6.49:1 */
+  --md-default-fg-color--lighter: rgb(242 239 232 / 36%);
+  --md-default-fg-color--lightest: rgb(242 239 232 / 12%);
+
+  --md-primary-fg-color: var(--satyrn-yellow-dark);
+  --md-primary-fg-color--light: #ede3a0;
+  --md-primary-fg-color--dark: var(--satyrn-yellow-dark);
+  --md-primary-bg-color: var(--satyrn-charcoal);
+  --md-primary-bg-color--light: rgb(56 51 48 / 70%);
+  --md-default-bg-color--light: rgb(56 51 48 / 70%);
+
+  --md-accent-fg-color: #ede3a0;
+  --md-accent-fg-color--transparent: rgb(227 214 120 / 10%);
+
+  --md-typeset-color: #f2efe8;                         /* 10.86:1 */
+  --md-typeset-a-color: var(--satyrn-yellow-dark);     /* 8.40:1 */
+  --md-code-bg-color: #2f2b28;
+  --md-code-fg-color: #f2efe8;
+
+  --md-footer-bg-color: var(--satyrn-charcoal);
+  --md-footer-bg-color--dark: var(--satyrn-charcoal);
+  --md-footer-fg-color: #f2efe8;
+  --md-footer-fg-color--light: #c2baaf;
+  --md-footer-fg-color--lighter: #c2baaf;
+
+  --satyrn-heading: #f2efe8;
+  --satyrn-accent: var(--satyrn-yellow-dark);
+  --satyrn-accent-text: var(--satyrn-yellow-dark);
+  /* CTA accent: lighter blue for contrast on the dark ground. */
+  --satyrn-cta: var(--satyrn-blue-light);
+  /* Link underline: light blue at rest, mid on hover, for the dark ground. */
+  --satyrn-underline: var(--satyrn-blue-light);        /* 4.55:1 on charcoal */
+  --satyrn-underline-hover: var(--satyrn-blue-mid);    /* 2.58:1 on charcoal */
+  --satyrn-surface: #423c39;
+  --satyrn-border: rgb(242 239 232 / 12%);
+  --satyrn-border-strong: rgb(242 239 232 / 30%);
+  --satyrn-control-border: #8f877e;
+
+  --satyrn-btn-bg: var(--satyrn-yellow-dark);
+  --satyrn-btn-bg-hover: #ede3a0;
+  --satyrn-btn-fg: var(--satyrn-charcoal);             /* 8.40:1 */
+
+  --satyrn-mark-body: var(--satyrn-ring-dark);
+  --satyrn-mark-accent: var(--satyrn-yellow-dark);
+
+  --satyrn-space-star: rgb(242 239 232 / 55%);
+  --satyrn-space-star-strong: rgb(242 239 232 / 80%);
+  --satyrn-space-star-bright: rgb(227 214 120 / 85%);
+  --satyrn-space-ink: #f2efe8;
+  --satyrn-space-orbit: var(--satyrn-ring-dark);
+  --satyrn-space-halo: rgb(230 213 104 / 24%);
+  --satyrn-space-halo-soft: rgb(230 213 104 / 9%);
+
+  --satyrn-heading-echo: var(--satyrn-yellow-ui);
+
+  --satyrn-card-bg: var(--satyrn-surface);
+}
+
+/* ------------------------------------------------------------- utilities -- */
+
+/* The inlined mark takes its two fills from the scheme tokens, so it recolours
+   with the theme: the ring in the scheme's ring colour (charcoal on light, tan
+   on dark), the planet in the brand yellow. One SVG, no light/dark files. */
+.satyrn-mark {
+  display: block;
+}
+
+.satyrn-mark__body {
+  fill: var(--satyrn-mark-body);
+}
+
+.satyrn-mark__accent {
+  fill: var(--satyrn-mark-accent);
+}
+
+/* ---------------------------------------------------------------- header -- */
+
+/* The header sits on the page background with a hairline beneath it, not the
+   solid primary-colour bar Zensical ships by default. */
+.md-header {
+  background-color: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  box-shadow: none;
+  border-bottom: 1px solid var(--satyrn-border);
+}
+
+.md-header__title {
+  font-size: 1.25rem;
+}
+
+/* The wordmark is a logotype, so it carries a touch more tracking than the
+   0.03em the shared heading rule gives every other heading. It takes the
+   mark's yellow (the UI tier on light: 1.25rem clears the large-text size). */
+.md-header__topic {
+  color: var(--satyrn-mark-accent);
+  letter-spacing: 0.07em;
+}
+
+.md-header__button.md-logo :is(img, svg) {
+  width: auto;
+  /* Sized so the planet sits close to the wordmark's cap height, matching the
+     proportion in the supplied horizontal lockup. */
+  height: 1.6rem;
+}
+
+/* The repository slot reserves 11.5rem on wide viewports whether or not a
+   repo_url is configured, which pushes search away from the right edge. Collapse
+   it only while it holds no elements, so setting repo_url later still works. */
+.md-header__source:not(:has(*)) {
+  display: none;
+}
+
+/* With the footer on the page background, a hairline marks where it starts.
+   The theme also tints the copyright row, which took its muted text to 4.47:1
+   on light; that band goes too. */
+.md-footer {
+  border-top: 1px solid var(--satyrn-border);
+}
+
+.md-footer-meta {
+  background-color: transparent;
+}
+
+/* Search reads as an input on the page surface rather than a translucent
+   white pill. */
+.md-search__form {
+  background-color: var(--satyrn-surface);
+  border: 1px solid var(--satyrn-border);
+  border-radius: var(--satyrn-radius);
+}
+
+/* ---------------------------------------------------------------- menubar -- */
+
+/* The dropdown menu bar sits inside the header nav, between the title and the
+   search box. On desktop it is a flex row; below 1220px it hides and the
+   mobile drawer carries all links instead.
+
+   The old `.md-tabs` rules are removed — the tab bar no longer exists as a
+   separate element below the header. */
+
+.satyrn-menubar {
+  display: none;
+}
+
+@media screen and (min-width: 76.25em) {
+  .satyrn-menubar {
+    display: block;
+  }
+
+  .satyrn-menubar__list {
+    display: flex;
+    align-items: center;
+    gap: 0 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ---------------------------------------------------------- items -- */
+
+  .satyrn-menubar__item {
+    position: relative;
+  }
+
+  /* -------------------------------------------------------- links -- */
+
+  /* Plain links on the header background, matching the header's font size.
+     Padded well past the 24x24px WCAG 2.2 minimum target size. */
+  .satyrn-menubar__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: var(--weight-emphasis);
+    color: var(--md-default-fg-color--light);
+    text-decoration: none;
+    border-radius: var(--satyrn-radius);
+    transition: color 0.2s, background-color 0.2s;
+  }
+
+  .satyrn-menubar__link:hover,
+  .satyrn-menubar__link:focus {
+    color: var(--md-default-fg-color);
+    background-color: var(--satyrn-surface);
+  }
+
+  /* Active state — full-strength colour plus yellow underline */
+  .satyrn-menubar__item--active > .satyrn-menubar__link,
+  .satyrn-menubar__link--active {
+    color: var(--md-default-fg-color);
+    border-bottom: 2px solid var(--satyrn-accent);
+  }
+
+  /* ------------------------------------------------------ toggles -- */
+
+  /* Dropdown toggle buttons match the link styling */
+  .satyrn-menubar__toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: var(--weight-emphasis);
+    font-family: inherit;
+    color: var(--md-default-fg-color--light);
+    background: none;
+    border: none;
+    border-radius: var(--satyrn-radius);
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+  }
+
+  .satyrn-menubar__toggle:hover,
+  .satyrn-menubar__toggle:focus {
+    color: var(--md-default-fg-color);
+    background-color: var(--satyrn-surface);
+  }
+
+  /* Append a chevron to indicate the dropdown */
+  .satyrn-menubar__toggle::after {
+    content: "▾";
+    margin-left: 0.3em;
+    font-size: 0.8em;
+  }
+
+  /* When the popover is open, style the toggle */
+  .satyrn-menubar__toggle:has(~ [popover]:popover-open) {
+    color: var(--md-default-fg-color);
+    background-color: var(--satyrn-surface);
+  }
+
+  /* ------------------------------------------------------- panels -- */
+
+  /* Popover dropdown panels positioned using CSS anchor positioning.
+     The `anchor` attribute on the popover links it to the toggle button.
+     Falls back to `inset: auto` for browsers without anchor positioning. */
+  .satyrn-menubar__panel {
+    inset: auto;
+    border: 1px solid light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0.12));
+    border-radius: var(--satyrn-radius);
+    padding: 0.4rem 0;
+    margin: 0;
+    background: light-dark(#fff, #1e1e1e);
+    box-shadow: 0 2px 8px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.4));
+    min-width: 9rem;
+
+    /* Anchor positioning — positions below the toggle button */
+    position-anchor: attr(anchor);
+    top: anchor(bottom);
+    left: anchor(left);
+  }
+
+  .satyrn-menubar__sublist {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .satyrn-menubar__sublink {
+    display: block;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: var(--weight-emphasis);
+    color: var(--md-default-fg-color--light);
+    text-decoration: none;
+    transition: color 0.2s, background-color 0.2s;
+  }
+
+  .satyrn-menubar__sublink:hover,
+  .satyrn-menubar__sublink:focus {
+    color: var(--md-default-fg-color);
+    background-color: var(--satyrn-surface);
+  }
+
+  .satyrn-menubar__subitem--active > .satyrn-menubar__sublink,
+  .satyrn-menubar__sublink--active {
+    color: var(--md-default-fg-color);
+  }
+
+  /* Placeholder items — no backing page yet; dimmed and non-interactive */
+  .satyrn-menubar__sublink--placeholder {
+    cursor: default;
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  /* ---------------------------------------------------- external -- */
+
+  /* Off-site links get an external arrow indicator */
+  .satyrn-menubar__external-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.2em;
+    font-size: 0.85em;
+    vertical-align: middle;
+  }
+
+  .satyrn-menubar__external-icon svg {
+    width: 0.9em;
+    height: 0.9em;
+  }
+}
+
+/* The old tab bar no longer renders, but keep these rules in case Zensical's
+   internal logic still references `.md-tabs` classes on the sidebar. */
+.md-tabs {
+  display: none;
+}
+
+/* --------------------------------------------------------------- sidebar -- */
+
+/* Above 1220px the theme's `md-nav--lifted` hides every top-level item but the
+   active one, which is exactly the scoping wanted: the tabs carry the top
+   level, so the sidebar carries what is inside the current tab. Below that
+   width the tab bar is not rendered at all and the same markup becomes the
+   drawer, still holding the whole tree. Nothing in the templates has to know
+   which of the two it is producing.
+
+   Lifted goes one step further than wanted, though, and hides the active
+   item's own link as well, leaving a column of headings with nothing naming
+   them. Restoring it gives the sidebar a title. `a.md-nav__link` and not
+   `.md-nav__link`: the theme emits a `<label>` sharing that class to toggle
+   the headings on mobile, and that one should stay hidden. */
+@media screen and (min-width: 76.25em) {
+  .md-nav--lifted > .md-nav__list > .md-nav__item--active > a.md-nav__link {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--md-default-fg-color);
+    font-weight: var(--weight-emphasis);
+  }
+}
+
+/* The landing page runs full width, so its sidebar is suppressed -- but only
+   above the breakpoint where the tab bar exists to replace it. Below that, the
+   same element is the mobile drawer and the only navigation on the page. See
+   overrides/home.html for why this is a wrapper class and not `hide`. */
+.satyrn-home-nav {
+  display: contents;
+}
+
+@media screen and (min-width: 76.25em) {
+  .satyrn-home-nav > .md-sidebar--primary {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------ breakpoints -- */
+
+/* The landing page uses the theme's own breakpoints, so its layout changes
+   in step with the header and the tab bar rather than a few pixels apart.
+   Media queries measure `em` against the 16px browser default, not the 125%
+   root size, so these are:
+
+     > 76.25em  (1220px)  desktop: tab bar shown, full hero
+     <= 76.25em           small desktop / landscape tablet: tab bar gone
+     <= 60em    (960px)   tablet: single-column hero, planet scene under the buttons
+     <= 30em    (480px)   phone: tighter type and spacing, full-width buttons
+
+   The only decoration is the space band in the hero (blocks: hero, space).
+   Below 960px the planet scene moves under the buttons, so it never pushes
+   the call to action down the screen. */
+
+/* ------------------------------------------------------ block: actions -- */
+
+/* A row of buttons. Markdown wraps adjacent links in one paragraph, so the
+   paragraph is the flex container. */
+.satyrn-actions > p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+}
+
+/* The theme's `.md-button`, restyled for both variants. `.md-typeset` is
+   repeated to match the theme's own selector weight.
+
+   The secondary button's border is the full-strength body colour's 3:1
+   equivalent, not a tint: it is the only thing that marks the button out as
+   a control (WCAG 1.4.11). The 2.4rem minimum height clears the 44px touch
+   target at every root size. */
+.md-typeset .md-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.5rem 1.1rem;
+  border: 1px solid var(--satyrn-control-border);
+  border-radius: var(--satyrn-radius);
+  background-color: transparent;
+  color: var(--md-default-fg-color);
+  font-size: 0.8rem;
+  font-weight: var(--weight-emphasis);
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+
+.md-typeset .md-button:is(:hover, :focus-visible) {
+  border-color: var(--md-default-fg-color);
+  background-color: var(--satyrn-surface);
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset .md-button--primary {
+  border-color: var(--satyrn-btn-bg);
+  background-color: var(--satyrn-btn-bg);
+  color: var(--satyrn-btn-fg);
+}
+
+.md-typeset .md-button--primary:is(:hover, :focus-visible) {
+  border-color: var(--satyrn-btn-bg-hover);
+  background-color: var(--satyrn-btn-bg-hover);
+  color: var(--satyrn-btn-fg);
+}
+
+/* The ring is drawn in the body colour, offset clear of the button, so it
+   meets 3:1 against the page whichever button it surrounds. */
+.md-typeset .md-button:focus-visible {
+  outline: 2px solid var(--md-default-fg-color);
+  outline-offset: 2px;
+}
+
+/* A standalone "more" link. The arrow is the one piece of generated content
+   kept: it is what says "this goes somewhere" without an underline. */
+.md-typeset .satyrn-arrow-link,
+.satyrn-arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 24px;
+  color: var(--satyrn-cta);
+  font-weight: var(--weight-emphasis);
+  text-decoration: none;
+}
+
+.satyrn-arrow-link::after {
+  content: "→";
+}
+
+.md-typeset .satyrn-arrow-link:hover,
+.satyrn-arrow-link:hover {
+  color: var(--satyrn-cta);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ------------------------------------------------------------- CTA button --
+   The theme paints every `.md-typeset a` yellow at specificity (0,1,1). We beat
+   it with ONE selector a single notch higher -- `.md-typeset a.satyrn-cta` at
+   (0,2,1). Not a specificity war, just enough to win deterministically in every
+   browser (the `@scope`-proximity approach did NOT: the scoped selector's
+   specificity is too low, so the theme won -- and headless Chrome hid it). The
+   class also excludes the link from the prose underline rule.
+
+   The blog-H1 analogy: a filled face with an offset OUTLINE echo (a hollow
+   border, not a solid shadow) down-right; the button presses onto it on hover.
+   White on blue-mid is 4.68:1 -- accessible, and no yellow anywhere. */
+.md-typeset a.satyrn-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin: 1.4rem 0;
+  padding: 0.55rem 1.3rem;
+  border-radius: var(--satyrn-radius);
+  background: var(--satyrn-blue-mid);
+  color: #fff;
+  font-weight: var(--weight-emphasis);
+  text-decoration: none;
+  line-height: 1.2;
+  transition: transform 0.12s ease;
+}
+
+/* z-index:-1 with no stacking context on the link puts the echo BEHIND the
+   fill, so only the offset corner peeks out down-right. */
+.md-typeset a.satyrn-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1.5px solid var(--satyrn-blue-light);
+  border-radius: inherit;
+  transform: translate(4px, 4px);
+}
+
+.md-typeset a.satyrn-cta:hover {
+  transform: translate(4px, 4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset a.satyrn-cta {
+    transition: none;
+  }
+}
+
+@media screen and (max-width: 30em) {
+  /* Stacked, full width: one thumb-sized target per row, no ragged pair. */
+  .satyrn-actions > p {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* A text link beside the button: centred under it rather than stretched. */
+  .satyrn-actions .satyrn-arrow-link {
+    align-self: center;
+  }
+
+  .md-typeset .md-button {
+    width: 100%;
+  }
+}
+
+/* ----------------------------------------------------------- block: hero -- */
+
+/* The hero is a full-width band of space, with the text in the normal content
+   column and the planet scene beside it (block: space). It sits on the page's
+   own background: charcoal with pale stars in dark mode, greige with charcoal
+   stars and the light logo in light mode, so the hero text keeps the page's
+   colour tokens and contrast in both.
+
+   Full bleed without leaving the markdown: negative inline margins pull the
+   band out to the viewport edges, and equal padding puts the content back on
+   the grid. `100vw` includes a classic scrollbar, so the page clips horizontal
+   overflow (html rule below) rather than growing a sideways scroll. */
+html:has(.satyrn-hero) {
+  overflow-x: clip;
+}
+
+.satyrn-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3rem;
+  align-items: center;
+  /* Up against the header: cancels the theme's 1.5rem main margin, 0.7rem
+     article padding and 0.4rem article spacer. */
+  margin: -2.6rem calc(50% - 50vw) 0;
+  padding: 4rem calc(50vw - 50%) 4.5rem;
+  background-color: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  /* Keeps the oversized planet scene inside the band. */
+  overflow: clip;
+  /* Names the band's journey through the viewport, so the moons and stars can
+     be driven by scrolling rather than by a clock (see block: space). */
+  view-timeline: --satyrn-window block;
+}
+
+/* A static starfield across the band: three tiling layers of dots at
+   different sizes and densities, so the repeat never reads as a grid. Painted
+   once.
+
+   Masked twice, intersected. It fades out at the bottom, so the band melts
+   into the page instead of ending on a line. And it stays out from
+   behind the text column: a dot beside a word reads as a stray full stop.
+   The text column ends at most ~4.5rem right of centre at any desktop width
+   (measured 1024-1920px), so the stars fade in from 6rem to 12rem past it. */
+.satyrn-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(circle at 95% 44%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 26% 19%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 54% 78%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 59% 91%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 63% 50%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 9% 84%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 61% 84%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 60% 17%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 6% 22%, var(--satyrn-space-star) 0.8px, transparent 1.5px),
+    radial-gradient(circle at 38% 20%, var(--satyrn-space-star-strong) 1.1px, transparent 1.8px),
+    radial-gradient(circle at 92% 5%, var(--satyrn-space-star-strong) 1.1px, transparent 1.8px),
+    radial-gradient(circle at 73% 24%, var(--satyrn-space-star-strong) 1.1px, transparent 1.8px),
+    radial-gradient(circle at 80% 84%, var(--satyrn-space-star-strong) 1.1px, transparent 1.8px),
+    radial-gradient(circle at 27% 54%, var(--satyrn-space-star-strong) 1.1px, transparent 1.8px),
+    radial-gradient(circle at 21% 21%, var(--satyrn-space-star-strong) 1.1px, transparent 1.8px),
+    radial-gradient(circle at 37% 74%, var(--satyrn-space-star-bright) 1.3px, transparent 2.0px),
+    radial-gradient(circle at 61% 3%, var(--satyrn-space-star-bright) 1.3px, transparent 2.0px);
+  background-size: 23rem 17rem, 23rem 17rem, 23rem 17rem, 23rem 17rem, 23rem 17rem, 23rem 17rem, 23rem 17rem, 23rem 17rem, 23rem 17rem, 37rem 29rem, 37rem 29rem, 37rem 29rem, 37rem 29rem, 37rem 29rem, 37rem 29rem, 53rem 41rem, 53rem 41rem;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent calc(50% + 6rem), #000 calc(50% + 12rem)),
+    linear-gradient(to bottom, #000 70%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent calc(50% + 6rem), #000 calc(50% + 12rem)),
+    linear-gradient(to bottom, #000 70%, transparent);
+  mask-composite: intersect;
+  pointer-events: none;
+}
+
+.satyrn-hero__text {
+  position: relative;
+  z-index: 1;
+}
+
+.md-typeset .satyrn-hero__text h1 {
+  margin: 0 0 1.25rem;
+  max-width: 22ch;
+  color: var(--satyrn-heading);
+  font-size: 3rem;
+  line-height: 1.08;
+  overflow-wrap: break-word;
+}
+
+/* `==AI our way:==` in the markdown. Coloured rather than highlighted: a yellow
+   fill on greige is 1.06:1 and disappears. The h1 is never set below 24px,
+   so the 3:1 large-text threshold applies at every breakpoint. */
+.md-typeset .satyrn-hero__text h1 mark {
+  background: none;
+  box-shadow: none;
+  color: var(--satyrn-accent);
+}
+
+.md-typeset .satyrn-hero__lede {
+  max-width: 34rem;
+  margin: 0 0 1rem;
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* Hero link groups: labeled rows (New, Try, Participate).
+   Each group is one line: bold label, then links separated by pipes. */
+.satyrn-hero__links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 34rem;
+  margin: 1.5rem 0 0;
+}
+
+.satyrn-hero__group {
+  display: block;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.satyrn-hero__group > strong {
+  font-weight: var(--weight-emphasis);
+  color: var(--md-default-fg-color);
+  margin-right: 0.25em;
+}
+
+.satyrn-hero__group > strong::after {
+  content: ":";
+}
+
+/* Stacked class prefix on these two to out-specificity the theme's own
+   `.md-typeset ul:not([hidden])` (display: flow-root, specificity 0,2,1) and
+   `[dir=ltr] .md-typeset ul li` (margin-left: 1.25em, specificity 0,2,2) --
+   both otherwise beat a plainer `.satyrn-hero__group ul`/`li` regardless of
+   source order. */
+.md-typeset .satyrn-hero__links .satyrn-hero__group ul {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .satyrn-hero__links .satyrn-hero__group li {
+  display: inline;
+  margin: 0;
+}
+
+/* Pipe separator between links */
+.satyrn-hero__group li:not(:first-child)::before {
+  content: " | ";
+  color: var(--md-default-fg-color--light);
+}
+
+/* These read as a dense pipe-separated list, not standalone "read more"
+   links, so the arrow affordance is dropped here -- and with it the
+   `inline-flex` layout it needed, which was letting the theme's
+   `.md-typeset a { word-break: break-word }` shrink each link into an
+   ugly single-letter-per-line wrap. `.satyrn-hero__group .satyrn-arrow-link`
+   (two classes) beats `.md-typeset a` (one class, one type) on specificity. */
+.satyrn-hero__group .satyrn-arrow-link {
+  display: inline;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.satyrn-hero__group .satyrn-arrow-link::after {
+  content: none;
+}
+
+/* The "what it isn't" line. Short negative definitions read faster than
+   another claim, and the link lands on the status section that backs up
+   "not finished". Body colour, not the muted grey: it is the stance, not an
+   aside. */
+.md-typeset .satyrn-hero__not {
+  max-width: 34rem;
+  margin: 0 0 2rem;
+  color: var(--md-default-fg-color);
+  font-size: var(--fs-body);
+  font-weight: var(--weight-emphasis);
+  line-height: var(--lh-body);
+}
+
+.md-typeset .satyrn-hero__not a {
+  color: var(--satyrn-accent-text);
+}
+
+/* The planet scene. No box: the column only reserves space, and the SVG is
+   drawn larger than it, so the orbits and stars run past the column into the
+   band's starfield. A soft halo sits behind the planet; its gradient fades to
+   transparent well inside the column, so no edge ever shows. */
+.satyrn-hero__tile {
+  position: relative;
+  width: 24rem;
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 50%, var(--satyrn-space-halo) 0, var(--satyrn-space-halo-soft) 24%, transparent 50%);
+  pointer-events: none;
+}
+
+.satyrn-hero__tile > p {
+  margin: 0;
+}
+
+/* Drawn at 150% of the column and centred on it. `.md-typeset` is repeated
+   because the theme's own `.md-typeset svg { height: auto; max-width: 100% }`
+   otherwise wins: the SVG falls back to its square viewBox, and the width cap
+   leaves it shifted left into the text instead of enlarged. */
+.md-typeset .satyrn-hero__logo {
+  position: absolute;
+  top: -25%;
+  left: -25%;
+  display: block;
+  width: 150%;
+  max-width: none;
+  height: 150%;
+  overflow: visible;
+  /* The overhang on the left reaches the end of the text column (at 8-9% of
+     the SVG's width on desktop), so that side fades in: nothing drawn there
+     can sit behind a word. The fade is done by 16% because the logo's ring
+     starts at 17%, and the logo itself is never dimmed. */
+  -webkit-mask-image: linear-gradient(to right, transparent 10%, #000 16%);
+  mask-image: linear-gradient(to right, transparent 10%, #000 16%);
+}
+
+/* The same two fills as the header and footer mark, so the hero logo is the
+   light version on light and the dark version on dark, and all three match. */
+.satyrn-hero__ring {
+  fill: var(--satyrn-mark-body);
+}
+
+.satyrn-hero__planet {
+  fill: var(--satyrn-mark-accent);
+}
+
+/* ---------------------------------------------------------- block: space -- */
+
+/* Stars, orbits, two moons and a shooting star inside the hero window.
+
+   Performance: one inline SVG (about 3 KB of path data), static CSS gradients
+   for the glow, no images, no filters or blurs, and a 1 KB script for the
+   pointer. Stars and moons are zero-length strokes with round caps and
+   `non-scaling-stroke`, so each is a crisp dot of fixed pixel size however
+   the window is scaled or moved.
+
+   Motion, and why it is shaped like this. WCAG 2.2.2 (level A) requires a
+   pause control for motion that starts by itself and lasts over five seconds.
+   So nothing here loops on a clock. Everything is one of:
+     - Scroll-linked (where supported): the moons orbit in opposite directions,
+       the orbit dashes flow, and three star layers drift at different speeds
+       for depth. Still when the reader is still.
+     - Pointer-linked (javascripts/space.js): layers shift by different
+       amounts under the pointer, for parallax. Still when the pointer is.
+     - One-shot: a shooting star and a twinkle on load (done by ~2.7s), and
+       again each time the pointer enters the window.
+     - Fallback without scroll timelines: one 4.5s sweep of each moon on load.
+   `prefers-reduced-motion: reduce` removes all of it, and the script checks it
+   too; the scene is then still.
+
+   Two transform channels per element, so scroll and pointer never fight:
+     stars   `translate` = scroll drift     `transform` = pointer shift
+     orbits  `rotate`/`scale` = tilt         `translate` = pointer shift
+     moons   `transform` = orbit position    `translate` = pointer shift
+   The pointer position arrives as --satyrn-px / --satyrn-py, each -1 to 1. */
+.satyrn-space {
+  --satyrn-px: 0;
+  --satyrn-py: 0;
+}
+
+.satyrn-space__stars {
+  fill: none;
+  stroke: var(--satyrn-space-ink);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transform-box: view-box;
+}
+
+.satyrn-space__stars--bright {
+  stroke: var(--satyrn-space-star-bright);
+  stroke-width: 2.6px;
+  transform: translate(calc(var(--satyrn-px) * 5px), calc(var(--satyrn-py) * 5px));
+}
+
+.satyrn-space__stars--dim {
+  stroke-width: 1.7px;
+  opacity: 0.8;
+  transform: translate(calc(var(--satyrn-px) * 3px), calc(var(--satyrn-py) * 3px));
+}
+
+.satyrn-space__stars--faint {
+  stroke-width: 1.1px;
+  opacity: 0.5;
+  transform: translate(calc(var(--satyrn-px) * 1.5px), calc(var(--satyrn-py) * 1.5px));
+}
+
+/* Circles in the markup, flattened and tilted here to lie in the ring's plane.
+   Individual `rotate` and `scale` apply after `transform`, which is what lets
+   the moons spin inside the flattened orbits. */
+.satyrn-space__orbit,
+.satyrn-space__moon {
+  transform-box: view-box;
+  transform-origin: 64px 64px;
+  rotate: -20deg;
+  scale: 1 0.43;
+  translate: calc(var(--satyrn-px) * 2.5px) calc(var(--satyrn-py) * 2.5px);
+}
+
+.satyrn-space__orbit {
+  fill: none;
+  stroke: var(--satyrn-space-orbit);
+  stroke-width: 1px;
+  stroke-dasharray: 2 5;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.6;
+}
+
+.satyrn-space__orbit--outer {
+  opacity: 0.3;
+}
+
+/* Where each moon rests when nothing is moving, clear of the planet. */
+.satyrn-space__moon {
+  fill: none;
+  stroke: var(--satyrn-space-ink);
+  stroke-width: 8px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transform: rotate(210deg);
+  translate: calc(var(--satyrn-px) * 4px) calc(var(--satyrn-py) * 4px);
+}
+
+.satyrn-space__moon--outer {
+  stroke: var(--satyrn-mark-accent);
+  stroke-width: 5px;
+  transform: rotate(140deg);
+}
+
+/* Head at the origin, tail up and to the left; flown by `translate`. */
+.satyrn-space__meteor {
+  fill: none;
+  stroke: var(--satyrn-space-ink);
+  stroke-width: 1.8px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transform-box: view-box;
+  opacity: 0;
+}
+
+@keyframes satyrn-orbit {
+  from { transform: rotate(90deg); }
+  to { transform: rotate(390deg); }
+}
+
+@keyframes satyrn-orbit-outer {
+  from { transform: rotate(320deg); }
+  to { transform: rotate(80deg); }
+}
+
+@keyframes satyrn-arrive {
+  from { transform: rotate(40deg); }
+  to { transform: rotate(210deg); }
+}
+
+@keyframes satyrn-arrive-outer {
+  from { transform: rotate(280deg); }
+  to { transform: rotate(140deg); }
+}
+
+@keyframes satyrn-dash {
+  to { stroke-dashoffset: -84; }
+}
+
+@keyframes satyrn-drift-far {
+  from { translate: 0 3px; }
+  to { translate: 0 -3px; }
+}
+
+@keyframes satyrn-drift-mid {
+  from { translate: 0 7px; }
+  to { translate: 0 -7px; }
+}
+
+@keyframes satyrn-drift-near {
+  from { translate: 0 12px; }
+  to { translate: 0 -12px; }
+}
+
+/* Two identical copies of each one-shot, so the script can replay them by
+   switching names: a changed `animation-name` restarts an animation. */
+@keyframes satyrn-twinkle-a {
+  50% { opacity: 0.2; }
+}
+
+@keyframes satyrn-twinkle-b {
+  50% { opacity: 0.2; }
+}
+
+@keyframes satyrn-meteor-a {
+  0% { translate: -10px 8px; opacity: 0; }
+  15% { opacity: 1; }
+  75% { opacity: 0.8; }
+  100% { translate: 104px 44px; opacity: 0; }
+}
+
+@keyframes satyrn-meteor-b {
+  0% { translate: -10px 8px; opacity: 0; }
+  15% { opacity: 1; }
+  75% { opacity: 0.8; }
+  100% { translate: 104px 44px; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Smooths the pointer shift, and eases everything home on leave. */
+  .satyrn-space__stars {
+    transition: transform 450ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .satyrn-space__orbit,
+  .satyrn-space__moon {
+    transition: translate 450ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  /* One-shots on load. Replays switch between the -a and -b copies. */
+  .satyrn-space__meteor {
+    animation: satyrn-meteor-a 1.1s cubic-bezier(0.3, 0.1, 0.6, 1) 1.4s both;
+  }
+
+  .satyrn-space[data-flight="1"] .satyrn-space__meteor {
+    animation: satyrn-meteor-b 1.1s cubic-bezier(0.3, 0.1, 0.6, 1) both;
+  }
+
+  .satyrn-space[data-flight="2"] .satyrn-space__meteor {
+    animation: satyrn-meteor-a 1.1s cubic-bezier(0.3, 0.1, 0.6, 1) both;
+  }
+
+  /* Fallback moons: one sweep each on load. */
+  .satyrn-space__moon {
+    animation: satyrn-arrive 4.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .satyrn-space__moon--outer {
+    animation-name: satyrn-arrive-outer;
+  }
+
+  .satyrn-space__stars--bright {
+    animation: satyrn-twinkle-a 1.3s ease-in-out 0.3s 2;
+  }
+
+  .satyrn-space[data-flight="1"] .satyrn-space__stars--bright {
+    animation: satyrn-twinkle-b 1.3s ease-in-out 2;
+  }
+
+  .satyrn-space[data-flight="2"] .satyrn-space__stars--bright {
+    animation: satyrn-twinkle-a 1.3s ease-in-out 2;
+  }
+
+  @supports (animation-timeline: view()) {
+    .satyrn-space__moon,
+    .satyrn-space__moon--outer,
+    .satyrn-space__orbit,
+    .satyrn-space__stars--faint,
+    .satyrn-space__stars--dim {
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --satyrn-window;
+      animation-range: cover 0% cover 100%;
+    }
+
+    .satyrn-space__moon { animation-name: satyrn-orbit; }
+    .satyrn-space__moon--outer { animation-name: satyrn-orbit-outer; }
+    .satyrn-space__orbit { animation-name: satyrn-dash; }
+    .satyrn-space__stars--faint { animation-name: satyrn-drift-far; }
+    .satyrn-space__stars--dim { animation-name: satyrn-drift-mid; }
+
+    /* Bright stars carry both a scroll drift and the clock-based twinkle, so
+       each gets its own timeline in a paired list. */
+    .satyrn-space__stars--bright {
+      animation:
+        satyrn-twinkle-a 1.3s ease-in-out 0.3s 2,
+        satyrn-drift-near linear both;
+      animation-timeline: auto, --satyrn-window;
+      animation-range: normal, cover 0% cover 100%;
+    }
+
+    .satyrn-space[data-flight="1"] .satyrn-space__stars--bright {
+      animation:
+        satyrn-twinkle-b 1.3s ease-in-out 2,
+        satyrn-drift-near linear both;
+      animation-timeline: auto, --satyrn-window;
+      animation-range: normal, cover 0% cover 100%;
+    }
+
+    .satyrn-space[data-flight="2"] .satyrn-space__stars--bright {
+      animation:
+        satyrn-twinkle-a 1.3s ease-in-out 2,
+        satyrn-drift-near linear both;
+      animation-timeline: auto, --satyrn-window;
+      animation-range: normal, cover 0% cover 100%;
+    }
+  }
+}
+
+@media screen and (max-width: 76.234375em) {
+  .satyrn-hero {
+    gap: 2rem;
+  }
+
+  .md-typeset .satyrn-hero__text h1 {
+    font-size: 2.6rem;
+  }
+
+  .satyrn-hero__tile {
+    width: 18rem;
+  }
+}
+
+@media screen and (max-width: 59.984375em) {
+  .satyrn-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 2.5rem 2rem;
+  }
+
+  /* The window moves under the buttons, so the call to action stays on the
+     first screen, and turns landscape. Capped in width so a tablet gets a
+     window rather than a thin strip; the SVG's `slice` fit crops the scene to
+     the box instead of letterboxing it. */
+  /* Below the buttons, as wide as the content column. The SVG is not enlarged
+     here: in a landscape box its `slice` fit already crops into the scene. */
+  .satyrn-hero__tile {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-height: 26rem;
+  }
+
+  .md-typeset .satyrn-hero__logo {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  /* Text runs the full width here, so the band's own starfield goes; the
+     planet scene under the buttons brings its stars with it. */
+  .satyrn-hero::before {
+    content: none;
+  }
+
+  .md-typeset .satyrn-hero__text h1 {
+    max-width: none;
+    font-size: 2.3rem;
+  }
+
+  .md-typeset .satyrn-hero__lede {
+    max-width: none;
+  }
+}
+
+@media screen and (max-width: 30em) {
+  .satyrn-hero {
+    padding-block: 2rem 1.5rem;
+  }
+
+  /* Scales down with the viewport below ~360px, so the longest word
+     ("developers.") fits whole instead of breaking mid-word. Never under
+     24px, so the yellow still clears the large-text threshold. */
+  .md-typeset .satyrn-hero__text h1 {
+    font-size: max(24px, min(1.9rem, 10vw));
+  }
+
+  .md-typeset .satyrn-hero__lede {
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* -------------------------------------------------------- block: section -- */
+
+/* Every section after the hero opens on a full-width hairline, which gives the
+   page its structure without boxes around everything. */
+.satyrn-section,
+.satyrn-latest {
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--satyrn-border);
+}
+
+.md-typeset :is(.satyrn-section, .satyrn-latest) h2 {
+  margin: 0 0 1.5rem;
+  font-size: 2rem;
+  line-height: 1.15;
+}
+
+@media screen and (max-width: 59.984375em) {
+  .satyrn-section,
+  .satyrn-latest {
+    padding: 2.5rem 0;
+  }
+
+  .md-typeset :is(.satyrn-section, .satyrn-latest) h2 {
+    font-size: 1.6rem;
+  }
+}
+
+/* -------------------------------------------------------- block: problem -- */
+
+/* The pain the project answers, stated before the pillars that answer it.
+   Plain prose at reading size; the closing line is set apart by weight, not
+   colour, so it needs no contrast exception. */
+.md-typeset .satyrn-problem p {
+  max-width: 38rem;
+  margin: 0 0 1rem;
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.md-typeset .satyrn-problem .satyrn-problem__kicker {
+  margin: 0;
+  color: var(--md-default-fg-color);
+  font-weight: var(--weight-emphasis);
+}
+
+/* --------------------------------------------------------- block: status -- */
+
+/* What works today and what's being built, stated plainly. Two columns of
+   short lists; a third arrives when there is something honest to put in it. */
+.md-typeset .satyrn-status > p {
+  margin: -0.75rem 0 1.5rem;
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+}
+
+.satyrn-status__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media screen and (max-width: 44.984375em) {
+  .satyrn-status__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.satyrn-status__col {
+  padding: 1.25rem;
+  border: 1px solid var(--satyrn-border);
+  border-radius: var(--satyrn-radius);
+  background-color: var(--satyrn-surface);
+}
+
+.md-typeset .satyrn-status__col h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+[dir] .md-typeset .satyrn-status__col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[dir] .md-typeset .satyrn-status__col li {
+  margin: 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--satyrn-border);
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.md-typeset .satyrn-status__col strong {
+  color: var(--md-default-fg-color);
+}
+
+/* ------------------------------------------------------------ block: faq -- */
+
+/* Sceptics' questions, answered in the site's own voice. Plain headings and
+   paragraphs, so the answers are in the page and in search, not hidden behind
+   disclosure widgets. */
+.md-typeset .satyrn-faq h3 {
+  margin: 1.75rem 0 0.4rem;
+  font-size: 1rem;
+}
+
+.md-typeset .satyrn-faq h2 + h3 {
+  margin-top: 0;
+}
+
+.md-typeset .satyrn-faq p {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* -------------------------------------------------------- block: pillars -- */
+
+/* Built on the theme's own `grid cards`, so the markdown stays a plain list.
+
+   The theme's `.grid` is `repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`,
+   which lands on a 3+1 layout at some widths and strands one card alone on a
+   row. Column counts are declared per breakpoint instead: 4, then 2x2, then 1.
+
+   `.md-typeset .grid` is a two-class selector, so these have to match its
+   specificity to win. */
+.md-typeset .satyrn-pillars {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+@media screen and (max-width: 68.75em) {
+  .md-typeset .satyrn-pillars {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 44.984375em) {
+  .md-typeset .satyrn-pillars {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.md-typeset .satyrn-pillars.cards > ul > li {
+  padding: 1.25rem;
+  border: 1px solid var(--satyrn-border);
+  border-radius: var(--satyrn-radius);
+  background-color: var(--satyrn-surface);
+}
+
+/* Nothing in a card is clickable, so the theme's hover lift would promise an
+   interaction that does not exist. */
+.md-typeset .satyrn-pillars.cards > ul > li:hover,
+.md-typeset .satyrn-pillars.cards > ul > li:focus-within {
+  border-color: var(--satyrn-border);
+  box-shadow: none;
+}
+
+.md-typeset .satyrn-pillars h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.md-typeset .satyrn-pillars p {
+  margin: 0;
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* -------------------------------------------------------- block: mission -- */
+
+.md-typeset .satyrn-mission h2 {
+  margin-bottom: 1rem;
+}
+
+.md-typeset .satyrn-mission p {
+  max-width: 38rem;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* The byline under "Why Satyrn": the display face for the name, and a plain
+   line under it saying who that is, so the name never has to be decoded. */
+.md-typeset .satyrn-mission .satyrn-signature {
+  margin: 1.5rem 0 0;
+  color: var(--satyrn-heading);
+  font-family: var(--satyrn-font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.md-typeset .satyrn-mission .satyrn-signature__role {
+  margin: 0.15rem 0 0;
+  color: var(--md-default-fg-color--light);
+  font-size: var(--fs-xs);
+}
+
+/* ---------------------------------------------------------- block: crew -- */
+
+/* Contributor avatars. Static and scrollable by default; javascripts/crew.js
+   adds `.is-moving` for the marquee and a Pause button before it. The edges
+   fade so avatars slide in and out rather than being cut off. */
+.satyrn-crew {
+  margin-top: 1rem;
+  /* Inline padding lives here, not on the list: the loop moves the list by
+     exactly half its width, so any padding inside it would make each wrap
+     jump. */
+  padding: 0.3rem 2rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 2rem, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 2rem, #000 calc(100% - 2rem), transparent);
+}
+
+.satyrn-crew:focus-visible {
+  outline: 2px solid var(--md-default-fg-color);
+  outline-offset: 2px;
+}
+
+[dir] .md-typeset .satyrn-crew ul {
+  display: flex;
+  gap: 0.75rem;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[dir] .md-typeset .satyrn-crew li {
+  flex: none;
+  margin: 0;
+  scroll-snap-align: start;
+}
+
+.md-typeset .satyrn-crew img {
+  display: block;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  /* A ring in the page colour, then a hairline: avatars read as a set on either
+     scheme without a border colour per image. */
+  box-shadow: 0 0 0 2px var(--md-default-bg-color), 0 0 0 3px var(--satyrn-border-strong);
+}
+
+.md-typeset .satyrn-crew .satyrn-crew__you {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-right: 0.5rem;
+  color: var(--satyrn-accent-text);
+  font-weight: var(--weight-emphasis);
+  text-decoration: none;
+}
+
+.satyrn-crew.is-moving {
+  overflow: hidden;
+}
+
+/* The list holds two copies, so moving it by half its width (plus half the
+   gap that joins the copies) lands exactly where it started. Transform-only,
+   so the browser composites it without repainting. */
+.satyrn-crew.is-moving ul {
+  animation: satyrn-crew var(--satyrn-crew-duration, 40s) linear infinite;
+}
+
+.satyrn-crew.is-moving:is(:hover, :focus-within) ul,
+.satyrn-crew.is-paused ul {
+  animation-play-state: paused;
+}
+
+@keyframes satyrn-crew {
+  to { transform: translateX(calc(-50% - 0.375rem)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .satyrn-crew.is-moving ul {
+    animation: none;
+  }
+}
+
+.satyrn-crew__toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  margin-top: 1rem;
+  padding: 0.2rem 0.8rem;
+  border: 1px solid var(--satyrn-control-border);
+  border-radius: var(--satyrn-radius);
+  background: transparent;
+  color: var(--md-default-fg-color);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: var(--weight-emphasis);
+  cursor: pointer;
+}
+
+.satyrn-crew__toggle:hover {
+  border-color: var(--md-default-fg-color);
+}
+
+.satyrn-crew__toggle:focus-visible {
+  outline: 2px solid var(--md-default-fg-color);
+  outline-offset: 2px;
+}
+
+.satyrn-crew__toggle + .satyrn-crew {
+  margin-top: 0.5rem;
+}
+
+/* ------------------------------------------------------- block: involve -- */
+
+/* The invitation to contribute: pitch and buttons on the left, the four ways
+   to help on the right. */
+.satyrn-involve {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 3rem;
+  align-items: start;
+}
+
+.satyrn-involve__intro > p {
+  margin: 0 0 1.75rem;
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* The list the markdown emits, with the theme's indent and bullets cleared.
+   `[dir]` is there to outrank `[dir=ltr] .md-typeset ul li`. */
+[dir] .md-typeset .satyrn-involve__list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--satyrn-border);
+}
+
+[dir] .md-typeset .satyrn-involve__list li {
+  margin: 0;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--satyrn-border);
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.md-typeset .satyrn-involve__list strong {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--md-default-fg-color);
+  font-size: var(--fs-body);
+}
+
+@media screen and (max-width: 59.984375em) {
+  .satyrn-involve {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* -------------------------------------------------------- block: latest -- */
+
+/* Latest posts at the foot of the landing page, from partials/home-blog.html.
+   Rendered outside the markdown but still inside `.md-typeset`, so its lists
+   need the same reset as the blog listings. */
+.satyrn-latest__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset .satyrn-latest .satyrn-latest__head h2 {
+  margin: 0;
+}
+
+[dir] .md-typeset .satyrn-latest__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Fewer posts than columns: share the row rather than leave empty tracks. */
+[dir] .md-typeset .satyrn-latest__grid:has(> li:nth-child(2):last-child) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+[dir] .md-typeset .satyrn-latest__grid:has(> li:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media screen and (max-width: 59.984375em) {
+  [dir] .md-typeset .satyrn-latest__grid,
+  [dir] .md-typeset .satyrn-latest__grid:has(> li:nth-child(2):last-child) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+[dir] .md-typeset .satyrn-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 1.4rem 1.5rem;
+  border: 1px solid var(--satyrn-border);
+  border-radius: var(--satyrn-radius);
+  background-color: var(--satyrn-surface);
+}
+
+/* The hover state changes the underline, not just the border, so it does not
+   rely on a faint border colour alone. */
+.md-typeset .satyrn-card:hover {
+  border-color: var(--satyrn-control-border);
+}
+
+.md-typeset .satyrn-card__meta {
+  margin: 0 0 0.6rem;
+  color: var(--md-default-fg-color--light);
+  font-size: var(--fs-xs);
+}
+
+.md-typeset .satyrn-card__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+.md-typeset .satyrn-card__title a {
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+/* Stretches the title link over the whole card, so the card is one target. */
+.md-typeset .satyrn-card__title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.md-typeset .satyrn-card:hover .satyrn-card__title a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* The ring goes on the card, which is the visible target, not on the title. */
+.md-typeset .satyrn-card__title a:focus-visible {
+  outline: none;
+}
+
+.md-typeset .satyrn-card:has(a:focus-visible) {
+  outline: 2px solid var(--md-default-fg-color);
+  outline-offset: 2px;
+}
+
+.md-typeset .satyrn-card__summary {
+  margin: 0 0 1.25rem;
+  color: var(--md-typeset-color);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  text-wrap: pretty;
+}
+
+.md-typeset .satyrn-card__byline {
+  margin: auto 0 0;
+  color: var(--md-default-fg-color);
+  font-size: var(--fs-xs);
+  font-weight: var(--weight-emphasis);
+}
+
+@media screen and (max-width: 30em) {
+  [dir] .md-typeset .satyrn-card {
+    padding: 1.1rem 1.2rem;
+  }
+}
+
+/* --------------------------------------------------------- block: footer -- */
+
+/* Replaces the docs footer on the landing page only. */
+/* On the page background, not a darker band: the yellow wordmark is 3.02:1 on
+   greige and would drop below the large-text minimum on anything darker. */
+.satyrn-footer {
+  border-top: 1px solid var(--satyrn-border);
+  background-color: var(--md-default-bg-color);
+  color: var(--md-default-fg-color);
+  font-size: var(--fs-xs);
+}
+
+.satyrn-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem 4rem;
+  padding: 3rem 1.2rem 2.5rem;
+}
+
+.satyrn-footer__home {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 24px;
+  color: var(--satyrn-mark-accent);
+}
+
+.satyrn-footer .satyrn-mark {
+  width: auto;
+  height: 1.5rem;
+}
+
+/* Large text (1.25rem), so the UI yellow tier is enough on light. */
+.satyrn-footer__name {
+  font-family: var(--satyrn-font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.07em;
+}
+
+.satyrn-footer__tagline {
+  margin: 0.6rem 0 0;
+  color: var(--md-default-fg-color--light);
+}
+
+.satyrn-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem 4rem;
+}
+
+.satyrn-footer__heading {
+  margin: 0 0 0.5rem;
+  color: var(--md-default-fg-color--light);
+  font-size: var(--fs-xs);
+  font-weight: var(--weight-emphasis);
+}
+
+.satyrn-footer__col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each link gets a 32px target, past the 24px WCAG 2.5.8 minimum. The target
+   is an invisible overlay, not a tall centred box: a tall box would drop the
+   shared border-bottom underline away from the text. This keeps the link inline
+   so the underline hugs the text like every other link. */
+.satyrn-footer__col a {
+  position: relative;
+}
+
+.satyrn-footer__col a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1.6rem;
+}
+
+.satyrn-footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  padding: 1.25rem 1.2rem 2rem;
+  border-top: 1px solid var(--satyrn-border);
+  color: var(--md-default-fg-color--light);
+}
+
+.satyrn-footer__credit {
+  margin: 0;
+}
+
+/* Inherits its colour from the surrounding sentence; the shared link-underline
+   rule gives it the blue rule that marks it as a link. */
+.satyrn-footer__link--inline,
+.satyrn-footer__credit a,
+.md-copyright a {
+  color: inherit;
+}
+
+@media screen and (max-width: 30em) {
+  .satyrn-footer__inner {
+    gap: 2rem;
+    padding: 2rem 0.8rem;
+  }
+
+  .satyrn-footer__nav {
+    gap: 1.5rem 3rem;
+  }
+
+  .satyrn-footer__base {
+    flex-direction: column;
+    padding: 1rem 0.8rem 1.5rem;
+  }
+}
+
+/* --------------------------------------------------------- block: blog -- */
+
+/* Both blog blocks sit inside `.md-typeset`, so their lists arrive with the
+   theme's bullets, indent and item spacing already on. Clearing that is the
+   first thing either of them has to do.
+
+   The `[dir]` prefix is doing real work, and this is the one place in this
+   stylesheet that needed extra specificity. The theme writes its indents as
+   `[dir=ltr] .md-typeset ul li`, which a plain two-class selector loses to.
+   `[dir]` matches either direction and outranks it by one class, and
+   `margin-inline` then replaces the theme's separate ltr and rtl rules with a
+   single declaration. */
+[dir] .md-typeset :is(.satyrn-byline__authors, .satyrn-byline__author,
+                      .satyrn-posts, .satyrn-post) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Byline. Emitted above the h1 -- the `content` block can only wrap the page's
+   markdown -- so it reads as an eyebrow rather than a caption. */
+.satyrn-byline {
+  margin-bottom: 0.8rem;
+  color: var(--md-default-fg-color--light);
+  font-size: var(--fs-xs);
+}
+
+/* The author name gets the script face -- the one place human names are
+   handwritten. Sized well above the 0.7rem eyebrow so the joined glyphs stay
+   legible, with the date and title left small around it. Covers both the linked
+   name and the plain-text fallback; the only other child span is the title,
+   excluded here. Tracking cleared because script glyphs are joined. */
+.satyrn-byline__author > a,
+.satyrn-byline__author > span:not(.satyrn-byline__title) {
+  font-family: var(--satyrn-font-script);
+  font-size: 1.5rem;
+  letter-spacing: normal;
+}
+
+/* The byline author link takes the shared border-bottom underline. That
+   technique is exactly why the shared rule uses a border and not a
+   text-decoration: it sits clear of this script face's descenders. */
+
+/* Inline, not flex. A byline is a sentence, and inline content wraps as one
+   sequence. As flex items the author list and the date wrapped independently,
+   which on two authors put the date in between them.
+
+   Prefixed the same way as the reset above, and for the same reason: the theme
+   writes this one as `.md-typeset ul:not([hidden])`, where the `:not()` counts
+   for as much as a class. Two of our own classes tie and lose; three win. */
+[dir] .md-typeset :is(.satyrn-byline__authors, .satyrn-byline__author) {
+  display: inline;
+}
+
+/* Separators as generated content, so they never survive alone on a wrapped
+   line the way a real character in the markup would. Without them the name and
+   title render as "Example AuthorMaintainer".
+
+   Two distinct marks on purpose: a comma between authors, brackets around a
+   title. One mark for both makes "Example Author, Maintainer" ambiguous
+   between a job title and a second person. */
+.satyrn-byline__author + .satyrn-byline__author::before {
+  content: ", ";
+}
+
+.satyrn-byline__title::before {
+  content: " (";
+}
+
+.satyrn-byline__title::after {
+  content: ")";
+}
+
+.satyrn-byline__date::before {
+  content: "·";
+  margin: 0 0.4rem;
+}
+
+/* Pinned in CSS rather than by width/height attributes, because an author's
+   avatar file is not this stylesheet's to measure. `aspect-ratio` with `cover`
+   crops a non-square file instead of distorting it. */
+.satyrn-byline__avatar {
+  width: 1.5rem;
+  aspect-ratio: 1;
+  margin-right: 0.3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+}
+
+/* Listings, shared by the blog index and every author and tag archive. The
+   selector matches the reset above so the margin here is not undone by it. */
+[dir] .md-typeset .satyrn-posts {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+/* Beats `.md-typeset h2`, which sets a top margin sized for a heading that
+   separates sections of prose. Here the heading opens a row. */
+.md-typeset .satyrn-post__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+/* The whole row is not a link, so the title carries the affordance on its own:
+   it takes the shared link-underline rule. */
+
+.md-typeset .satyrn-post__meta {
+  margin: 0;
+  color: var(--md-default-fg-color--light);
+  font-size: var(--fs-xs);
+}
+
+.satyrn-post__author::before {
+  content: "·";
+  margin: 0 0.4rem;
+}
+
+.md-typeset .satyrn-post__summary {
+  margin: 0.4rem 0 0;
+  text-wrap: pretty;
+}
+
+/* ------------------------------------------------------- shared typeset -- */
+
+/* Zensical ships `.md-typeset` at 0.68--0.7rem, which lands body copy around
+   14--15px at the smaller root sizes. The body floor is the scale's base
+   (--fs-body = 1rem = 20px at the 125% root; root steps 125% -> 137.5% -> 150%
+   by viewport, so wider screens scale up from there). Prose and our own text
+   blocks reference --fs-body / --fs-xs rather than pinning ad-hoc rem sizes. */
+.md-typeset {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* Base heading sizes from the modular scale. Some landing-page component blocks
+   still set their own sizes for now; those get folded onto the scale next. The
+   specimen page at /design/typography/ shows plain headings, i.e. these. */
+.md-typeset h1 {
+  font-size: var(--fs-3xl);
+  line-height: 1.35;
+  transform: translateY(0.1em);
+}
+
+.md-typeset h2 {
+  font-size: var(--fs-2xl);
+  line-height: 1.35;
+  transform: translateY(0.1em);
+}
+
+.md-typeset h3 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+}
+
+.md-typeset h4 {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+}
+
+.md-typeset h5 {
+  font-size: var(--fs-body);
+  line-height: var(--lh-heading);
+}
+
+.md-typeset h6 {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-heading);
+}
+
+/* The display face belongs to headings as a concept, not to the two landing
+   page blocks that happened to need it first. Applying it only there left
+   `# Mission` in Inter directly above a Triple Charm `## The problem`.
+
+   `font-weight` is pinned to 400 because Triple Charm Sans ships a single
+   upright master at that weight -- there is no bold file. Asking for anything
+   heavier makes the browser synthesise a faux-bold and smear the face. */
+.md-header__title,
+.md-typeset :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--satyrn-font-display);
+  font-weight: 400;
+  /* The filled display face carries the brand hue; body copy stays pure neutral
+     (see the scheme blocks). A heading that wraps a link keeps the link colour
+     on the <a> and this on the rest. */
+  color: var(--satyrn-heading);
+  /* Triple Charm Sans sets its glyphs tight; a little positive tracking opens
+     the headings up without loosening them into a banner. */
+  letter-spacing: 0.03em;
+  font-size-adjust: from-font;
+  /* The theme uppercases h5; our headings are sentence-case across the board. */
+  text-transform: none;
+}
+
+.md-typeset :is(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+  /* The theme sizes heading margins in `em`, so at this scale an h1's 1.25em
+     bottom margin became ~3.3rem of air. Fixed rem margins instead: a clear gap
+     above (headings open a section) and a tight gap below (they bind to the
+     content that follows). */
+  margin-block: 1.6rem 0.5rem;
+}
+
+/* A heading opening a page or a block owns no space above it. */
+.md-typeset :is(h1, h2, h3, h4, h5, h6):first-child {
+  margin-block-start: 0;
+}
+
+/* Smaller headings step down to the body face at 700 rather than the Triple
+   Charm display, so the display face carries only the large headings (h1/h2)
+   and stops feeling over-used. They also drop the brand heading colour for the
+   body neutral, which sets them apart from the coloured display headings for a
+   bit of texture. The 0.03em display tracking is cleared as the body face needs
+   none. */
+.md-typeset :is(h3, h4, h5, h6) {
+  font-family: var(--md-text-font, "Reddit Sans"), sans-serif;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--md-typeset-color);
+}
+
+/* Blockquotes read as a distinct voice: one step up from body on the scale and
+   italic, rather than just indented body copy. */
+.md-typeset blockquote {
+  font-size: var(--fs-lg);
+  font-style: italic;
+}
+
+/* The theme sets tables and admonitions in a ~0.64rem micro-size that reads as
+   tiny beside 20px body. Bring them onto the scale -- tables to the small tier,
+   admonition copy to full body size. */
+.md-typeset table:not([class]) {
+  font-size: var(--fs-xs);
+}
+
+.md-typeset :is(.admonition, details) {
+  font-size: var(--fs-body);
+}
+
+/* Article titles only. The byline is emitted directly before the post h1, so
+   this adjacent-sibling selector reaches post pages and nothing else -- not the
+   blog overview, not docs, not the landing hero.
+
+   Layered heading effect: the h1 itself is the filled display face in the brand
+   heading colour (front layer), and a `::before` draws the same text in the
+   OUTLINE face, offset down-right in the echo colour (back layer). The copy
+   comes from `data-title`, stamped onto the h1 by blog-dates.js -- the theme
+   generates this h1 from the title, so there is no markup to duplicate by hand,
+   and without JS the reader simply gets the plain filled title. `z-index: 0`
+   makes the h1 a stacking context so the `-1` echo tucks behind its glyphs.
+
+   The theme's h1 margin (1.25em) plus Triple Charm's tall line box left far too
+   much air beneath the title, so the space below and line-height are pulled in. */
+.satyrn-byline + h1 {
+  position: relative;
+  z-index: 0;
+  margin-bottom: 0.5em;
+  line-height: 1.1;
+}
+
+.satyrn-byline + h1[data-title]::before {
+  content: attr(data-title);
+  /* Generated text is exposed to screen readers, which would read the title
+     twice. The empty alternative text marks the echo as decorative; browsers
+     without the syntax fall back to the declaration above. */
+  content: attr(data-title) / "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: -1;
+  font-family: var(--satyrn-font-outline);
+  color: var(--satyrn-heading-echo);
+  transform: translate(0.09em, 0.09em);
+  text-wrap: balance;
+  pointer-events: none;
+}
+
+.satyrn-hero__text p,
+.satyrn-problem p,
+.satyrn-status li,
+.satyrn-faq p,
+.satyrn-pillars p,
+.satyrn-mission p {
+  text-wrap: pretty;
+}
+
+/* The theme underlines every `.md-typeset a` by default, which bleeds onto
+   tags, buttons and any link-shaped component. Reset it to nothing here; the
+   rule below is then the single source of "what looks like a link". */
+.md-typeset a {
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------- link underline --
+   The ONE definition of the underlined text-link affordance, shared by every
+   text link: running prose, post titles, byline authors and footer links.
+
+   A native text-decoration underline: it skips descender ink and wraps
+   correctly across lines, and text-decoration-color lets the underline be blue
+   while the text inherits the surrounding colour -- the blue rule is the only
+   thing marking a link. Colour, thickness and offset are tokens; per scheme the
+   underline swaps to a second blue on hover, with no transition.
+
+   Scoping is opt-OUT by class, not a named blocklist. Markdown content links
+   have no class; every interactive component (`.md-button`, `.md-tag`,
+   `.cta-btn`, `.satyrn-arrow-link`, `.satyrn-crew__you`, the header link...)
+   carries one, so `a:not([class])` excludes them all automatically -- a new
+   component needs zero changes here. The only guard is `.satyrn-card a`: those
+   title links are unclassed but must stay bare (the whole card is the target).
+   Classed links that DO want the underline (footer, byline) opt in explicitly
+   below. The affordance (WCAG 1.4.1) is the underline's presence; its contrast
+   is decorative, the text tier carries 1.4.3. */
+.md-typeset :is(p, li, td, dd) a:not([class]):not(.satyrn-card a),
+.satyrn-post__title a,
+.satyrn-byline__author > a,
+.satyrn-footer__link,
+.satyrn-footer__link--inline,
+.satyrn-footer__credit a,
+.md-copyright a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--satyrn-underline);
+  text-decoration-thickness: var(--satyrn-underline-thickness);
+  text-underline-offset: var(--satyrn-underline-offset);
+}
+
+.md-typeset :is(p, li, td, dd) a:not([class]):not(.satyrn-card a):hover,
+.satyrn-post__title a:hover,
+.satyrn-byline__author > a:hover,
+.satyrn-footer__link:hover,
+.satyrn-footer__link--inline:hover,
+.satyrn-footer__credit a:hover,
+.md-copyright a:hover {
+  text-decoration-color: var(--satyrn-underline-hover);
+}
+
+/* The "Still being written" notes are warning admonitions, which the theme
+   paints orange. Yellow is the only hue this surface uses. */
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-color: var(--satyrn-accent);
+  background-color: var(--satyrn-surface);
+}
+
+.md-typeset .warning > :is(.admonition-title, summary) {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset .warning > :is(.admonition-title, summary)::before {
+  background-color: var(--satyrn-accent);
+}
+
+/* Tags on post pages. */
+.md-typeset .md-tag {
+  border: 1px solid var(--satyrn-border-strong);
+  background-color: transparent;
+  color: var(--satyrn-accent-text);
+  font-size: 0.7rem;
+}
+
+.md-typeset .md-tag:hover {
+  border-color: var(--satyrn-accent);
+  background-color: var(--md-accent-fg-color--transparent);
+  color: var(--satyrn-accent-text);
+}
+
+/* Footer nav links inherit the footer's text colour (via the shared
+   link-underline rule); only the blue underline marks them. The focus ring
+   lives in the :focus-visible block below. */
+
+/* The menu bar and other interactive links take the focus ring. Every one of
+   those colours clears the 3:1 WCAG 1.4.11 asks of a focus indicator. */
+.satyrn-menubar__link:focus-visible,
+.satyrn-menubar__toggle:focus-visible,
+.satyrn-menubar__sublink:focus-visible,
+.satyrn-footer__link:focus-visible,
+.satyrn-footer__home:focus-visible,
+.satyrn-arrow-link:focus-visible,
+.satyrn-byline__link:focus-visible,
+.satyrn-post__title a:focus-visible {
+  outline: 2px solid currentcolor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
