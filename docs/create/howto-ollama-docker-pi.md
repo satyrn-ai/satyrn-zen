@@ -41,6 +41,9 @@ picking a tag.
         container_name: ollama
         ports:
           - "11434:11434"
+        environment:
+          - OLLAMA_CONTEXT_LENGTH=16384
+          - OLLAMA_KEEP_ALIVE=30m
         volumes:
           - ollama_data:/root/.ollama
 
@@ -50,6 +53,20 @@ picking a tag.
 
     The named `ollama_data` volume keeps downloaded models between restarts,
     so you only pull each model once.
+
+    The two environment variables matter once an agent, rather than a person,
+    is driving the model. `OLLAMA_CONTEXT_LENGTH` sets how much context the
+    server allocates; its default adapts to the available VRAM and lands at 4k
+    on a modest machine, which an agent fills with its system prompt and tool
+    definitions before your own task even starts. `OLLAMA_KEEP_ALIVE` sets how
+    long the model stays in memory, five minutes by default: on slower
+    hardware it can unload while you read an answer, and the next turn pays
+    the full load and prompt-processing cost again.
+
+    Raise `OLLAMA_CONTEXT_LENGTH` if you have memory to spare, since a longer
+    context costs RAM for the key/value cache. To see what the server actually
+    allocated, run `docker exec -it ollama ollama ps` once a model is loaded
+    and read the `CONTEXT` column.
 
 1. Start the container from that directory.
 
