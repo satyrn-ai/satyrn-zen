@@ -1,0 +1,34 @@
+name: Links
+
+# Checks the external links in the docs, README and config with lychee.
+# Settings live in lychee.toml, so `lychee .` locally matches this run.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly, so a link that breaks between pull requests still shows up.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: links-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lychee:
+    name: lychee
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Fails the job on a broken link and writes the report to the job summary.
+      # The default token keeps github.com links clear of rate limits.
+      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --verbose .

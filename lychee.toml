@@ -1,0 +1,29 @@
+# Config for lychee, the link checker that .github/workflows/links.yml runs.
+# lychee reads this file from the repo root, so `lychee .` checks the same
+# links locally as CI does.
+#
+# Read more: https://lychee.cli.rs/guides/config/
+
+# Only the files that carry links we write. lychee skips anything in
+# .gitignore, so the build output in site/ and .pixi/ stay out. The templates
+# in overrides/ are left out on purpose: their URLs hold Jinja expressions
+# that only resolve at build time.
+extensions = ["md", "toml"]
+
+# Zensical checks links between our own pages when it builds the site, and
+# `pixi run build` fails on a broken one. lychee only needs to cover
+# the links that leave the site.
+scheme = ["https", "http"]
+
+# The docs point at the local dev server, http://localhost:8001.
+exclude_loopback = true
+
+# Some hosts answer GitHub's runners with a 403 (bot protection) or a 429
+# (rate limiting) while the page loads fine in a browser. Which hosts do it
+# changes from run to run: deeplearning.ai and scholar.google.com both did.
+# A dead link still fails, as a 404, 410 or a DNS error.
+accept = ["200..=299", "403", "429"]
+
+max_retries = 3
+timeout = 30
+no_progress = true

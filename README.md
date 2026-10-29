@@ -41,6 +41,6 @@ Other tasks:
 
 ## About the project
 
-Website: <https://satryn.ai>
+Website: <https://satyrn.ai>
 
 Team-Compass: <https://github.com/satyrn-ai/team-compass> Teams and governance

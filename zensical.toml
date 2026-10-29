@@ -334,7 +334,7 @@ unresolved_references = true
 # but you can customize this list to your needs.
 #
 # Read more:
-# - https://zensical.org/docs/setup/extensions/
+# - https://zensical.org/docs/compatibility/markdown/
 # ----------------------------------------------------------------------------
 [project.markdown_extensions.abbr]
 [project.markdown_extensions.admonition]
