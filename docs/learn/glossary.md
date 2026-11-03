@@ -1,6 +1,6 @@
 # Glossary
 
-A glossary of common terms using throughout this project.
+A glossary of common terms used throughout this project.
 
 **Agent**
 
