@@ -12,7 +12,7 @@ Our initial focus
 3. Technical projects
    - A fully open, local model
    - Tools that work from terminal, web (notebooks), and as local applications
-   - Tools that leverage Python's techincal strengths
+   - Tools that leverage Python's technical strengths
 
 
 ## Satyrn Inner Ring 1 - Open Python Tools and Libraries
