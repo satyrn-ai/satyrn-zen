@@ -1,6 +1,6 @@
 # Glossary
 
-A glossary of common terms using throughout this project.
+A glossary of common terms used throughout this project.
 
 **Agent**
 
@@ -39,7 +39,7 @@ A glossary of common terms using throughout this project.
 :    The unit a language model processes text in. Models have a context window measured in tokens.
 
 
-!!! note Add glossary items
+!!! note "Add glossary items"
 
-If you would like to add a term to the glossary, please file an issue or
-open a pull request on [GitHub](https://github.com/satyrn-ai/satyrn-zen).
+    If you would like to add a term to the glossary, please file an issue or
+    open a pull request on [GitHub](https://github.com/satyrn-ai/satyrn-zen).
