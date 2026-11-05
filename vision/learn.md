@@ -1,7 +1,3 @@
----
-icon: lucide/brain
----
-
 # Learn
 
 !!! note ""

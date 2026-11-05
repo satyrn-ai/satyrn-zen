@@ -1,7 +1,3 @@
----
-icon: lucide/gift
----
-
 # Share
 
 !!! info "Share your work and favorites"
@@ -10,7 +6,7 @@ icon: lucide/gift
     This section is a place for the Satyrn AI community to share their work and for anyone
     to share external resources that relate to our mission.
 
-##  By the Satyrn AI community
+## By the Satyrn AI community
 
 For resources created by the satyrn.ai community for sharing, see [Satyrn.ai Share](share-satyrn.md).
 

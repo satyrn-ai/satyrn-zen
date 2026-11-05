@@ -23,7 +23,7 @@ walks the whole journey on Ollama, from install to a graded result. It runs on
 a laptop with 16GB of memory.
 
 If Ollama is not set up yet, start with
-[Run your first small language model locally using Ollama](howto-ollama.md).
+[Run your first small language model locally using Ollama](../howto/howto-ollama.md).
 
 ## Use Jupyter
 

@@ -34,36 +34,36 @@ extra_javascript = ["javascripts/blog-dates.js", "javascripts/space.js", "javasc
 nav = [
     { "Zen" = "index.md" },
     { "Learn" = [
-        { "Learn" = "learn/learn.md" },
-        { "Engineering system" = [{ "About engineering systems" = "learn/engineering-system.md" }] },
-        { "AI system" = [
-            { "What is an AI system" = "learn/ai-system.md" },
-            { "What is a token" = "learn/what-token.md" },
+        { "Explanation" = [
+            { "Engineering system" = "learn/explanation/engineering-system.md" },
+            { "AI system" = [
+                { "What is an AI system" = "learn/explanation/ai-system.md" },
+                { "What is a token" = "learn/explanation/what-token.md" },
+            ] },
+            { "Taxonomies" = "learn/explanation/taxonomy.md" },
+            { "Models" = "learn/explanation/models.md" },
+            { "Agents and Harnesses" = "learn/explanation/agents.md" },
+            { "Gallery of Learning Resources" = "learn/explanation/learn-community.md" },
+        ]},
+        { "Tutorials" = [
+            "learn/tutorials/index.md"
         ] },
-        { "Taxonomies" = "learn/taxonomy.md" },
-        { "Models" = "learn/models.md" },
-        { "Agents and Harnesses" = "learn/agents.md" },
-        { "Gallery of Learning Resources" = "learn/learn-community.md" },
-        { "Glossary" = [{ "Commonly used terms" = "learn/glossary.md" }] },
-    ] },
-    { "Create" = [
-        { "Create" = "create/create.md" },
-        { "Create with Satyrn.ai" = "create/create-satyrn.md" },
         { "How-to" = [
-            { "Run a local model with Ollama" = "create/howto-ollama.md" },
-            { "Configure Ollama with environment variables" = "create/howto-ollama-env-vars.md" },
-            { "Run a local coding agent with Ollama in Docker" = "create/howto-ollama-docker-pi.md" },
-            { "Add a browser chat to Ollama with Open WebUI" = "create/howto-ollama-open-webui.md" },
-        ] },
-        { "Gallery of Tutorials" = "create/create-community.md" },
+            { "Getting started" = "learn/howto/getting-started.md"},
+            { "Run a local model with Ollama" = "learn/howto/howto-ollama.md" },
+            { "Configure Ollama with environment variables" = "learn/howto/create/howto-ollama-env-vars.md" },
+            { "Run a local coding agent with Ollama in Docker" = "learn/howto/create/howto-ollama-docker-pi.md" },
+            { "Add a browser chat to Ollama with Open WebUI" = "learn/howto/create/howto-ollama-open-webui.md" },
+        ]},
+        { "Reference" = [
+            { "Glossary" =  "learn/reference/glossary.md" },
+        ]},
     ] },
     { "Share" = [
-        { "Share" = "share/share.md" },
-        { "Satyrn.ai Share" = [
-            { "Satyrn team shares" = "share/share-satyrn.md" },
-            { "Share and find research" = "share/share-research.md" },
-        ] },
-        { "Gallery of External Links" = "share/share-community.md" },
+        "share/share.md",
+        { "Satyrn" = "share/share-satyrn.md" },
+        { "Research" = "share/share-research.md" },
+        { "Community" = "share/share-community.md" },
     ] },
 ]
 
@@ -264,13 +264,12 @@ toggle.name = "Switch to light mode"
 # does not match is not an error: the item silently drops to the end of the
 # sidebar. Anything absent is appended, not hidden, so a new page never vanishes.
 nav_order = [
-    "Zen",
-    "Learn",
-    "Create",
-    "Share",
+   "Zen",
+   "Learn",
+   "Share",
 ]
 # Rendered as a single link rather than an expanded tree.
-nav_collapse = ["Learn", "Create", "Share"]
+nav_collapse = ["Learn", "Share"]
 
 [[project.extra.social]]
 icon = "fontawesome/brands/github"
@@ -283,33 +282,23 @@ link = "https://github.com/satyrn-ai"
 # `title` when `page` is omitted). A `page` that matches nothing drops the
 # item silently.
 #
-# The menu has three top-level items: Learn (dropdown), Create (dropdown),
-# and Share (dropdown).
+# The menu has two top-level items: Learn (dropdown) and Share (dropdown).
 [[project.extra.nav_menu]]
 title = "Learn"
 children = [
-    { title = "Learn" },
-    { title = "Engineering system" },
-    { title = "AI system" },
-    { title = "Taxonomies" },
-    { title = "Models" },
-    { title = "Agents and Harnesses" },
-    { title = "Glossary" },
-]
-
-[[project.extra.nav_menu]]
-title = "Create"
-children = [
-    { title = "Create" },
-    { title = "Create with Satyrn.ai" },
+    { title = "Explanation" },
+    { title = "Tutorials" },
     { title = "How-to" },
+    { title = "Reference" },
 ]
 
 [[project.extra.nav_menu]]
 title = "Share"
 children = [
     { title = "Share" },
-    { title = "Satyrn.ai Share" },
+    { title = "Satyrn" },
+    { title = "Research" },
+    { title = "Community" },
 ]
 
 [[project.extra.nav_menu]]
