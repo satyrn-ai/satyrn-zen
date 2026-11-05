@@ -49,7 +49,8 @@ nav = [
             "learn/tutorials/index.md"
         ] },
         { "How-to" = [
-            { "Run a local model with Ollama" = "learn/howto/create/howto-ollama.md" },
+            { "Getting started" = "learn/howto/getting-started.md"},
+            { "Run a local model with Ollama" = "learn/howto/howto-ollama.md" },
             { "Configure Ollama with environment variables" = "learn/howto/create/howto-ollama-env-vars.md" },
             { "Run a local coding agent with Ollama in Docker" = "learn/howto/create/howto-ollama-docker-pi.md" },
             { "Add a browser chat to Ollama with Open WebUI" = "learn/howto/create/howto-ollama-open-webui.md" },

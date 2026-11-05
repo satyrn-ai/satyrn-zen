@@ -1,6 +1,3 @@
----
-status: howto
----
 # How to configure Ollama with environment variables
 
 ## Overview

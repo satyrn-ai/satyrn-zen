@@ -1,6 +1,3 @@
----
-status: howto
----
 # How to run a local coding agent with Ollama in Docker
 
 ## Overview

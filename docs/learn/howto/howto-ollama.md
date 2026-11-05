@@ -1,6 +1,3 @@
----
-status: howto
----
 # How to run a local model with Ollama
 
 ## Overview
@@ -28,8 +25,8 @@ based on the available RAM on your local system:
     Use [Ollama's installation instructions](https://docs.ollama.com/quickstart)
     for your operating system.
 
-1. Run the Ollama CLI from the terminal. Type `ollama run qwen3.5:2b` in the terminal.
-   This command will download the model and run it in ollama.
+1. Run the Ollama CLI from the terminal. Type `ollama run qwen3.5:2b` in the terminal. This command will
+   download the model and run it in ollama.
 
     ```sh
     ollama run qwen3.5:2b
