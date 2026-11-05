@@ -2,7 +2,7 @@
 
 ## AI model
 
-![](../assets/images/ai-model-taxonomy.png)
+![AI model taxonomy](../../assets/images/ai-model-taxonomy.png)
 
 ## Input tool
 
