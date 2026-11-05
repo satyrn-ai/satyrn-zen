@@ -35,7 +35,6 @@ nav = [
     { "Zen" = "index.md" },
     { "Learn" = [
         { "Explanation" = [
-            { "Learn" = "learn/explanation/learn.md" },
             { "Engineering system" = "learn/explanation/engineering-system.md" },
             { "AI system" = [
                 { "What is an AI system" = "learn/explanation/ai-system.md" },
