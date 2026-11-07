@@ -1,0 +1,18 @@
+// Read by both markdownlint-cli2 and the VS Code markdownlint extension.
+// Each entry below is a rule that disagrees with how these docs render.
+{
+  // Long lines are fine, and table rows can't be wrapped at all.
+  "MD013": false,
+
+  // Zensical needs four spaces to nest a list.
+  "MD007": { "indent": 4 },
+
+  // A front matter `title:` and a `#` heading are different things in Zensical.
+  "MD025": { "front_matter_title": "" },
+
+  // The glossary's terms are bold definition list labels, not headings.
+  "MD036": false,
+
+  // markdownlint reads the indented body of an admonition or list as a code block.
+  "MD046": false
+}

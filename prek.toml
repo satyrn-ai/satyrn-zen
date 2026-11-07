@@ -30,6 +30,13 @@ hooks = [
 ]
 
 [[repos]]
+repo = "https://github.com/DavidAnson/markdownlint-cli2"
+rev = "b82a6c8896e491b9cb377a99ff3412131920681b" # frozen: v0.23.2
+hooks = [
+    { id = "markdownlint-cli2", require_serial = true, files = '^(docs/.*|[^/]*)\.md$' },
+]
+
+[[repos]]
 repo = "local"
 hooks = [
     # Word list and language live in .vscode/cspell.json.
