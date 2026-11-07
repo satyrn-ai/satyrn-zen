@@ -1,4 +1,4 @@
-name: Spelling
+name: Lint
 
 # Runs the hooks in prek.toml, so `pixi run lint` locally matches this run.
 on:
@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: spelling-${{ github.ref }}
+  group: lint-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  cspell:
-    name: cspell
+  prek:
+    name: prek
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
