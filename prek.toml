@@ -2,6 +2,33 @@
 # file with `pixi run lint`, which CI calls too. Matches satyrn-website's setup.
 minimum_prek_version = "0.5.5"
 
+# Lock files are generated, and the build output is never tracked.
+exclude = { glob = ["pixi.lock", "site/**"] }
+
+[[repos]]
+repo = "builtin"
+hooks = [
+    # The largest tracked file is a 1.9 MB PDF. --enforce-all makes
+    # `--all-files` check what is already committed, not just new additions.
+    { id = "check-added-large-files", args = ["--maxkb=2000", "--enforce-all"] },
+    { id = "check-case-conflict" },
+    { id = "check-merge-conflict" },
+    { id = "check-toml" },
+    { id = "check-yaml" },
+    { id = "check-jsonc", files = '^(\.vscode/.*\.json|.*\.jsonc)$', types = ["text"] },
+    { id = "end-of-file-fixer" },
+    { id = "mixed-line-ending", args = ["--fix=lf"] },
+    # Two trailing spaces are a Markdown line break.
+    { id = "trailing-whitespace", args = ["--markdown-linebreak-ext=md"] },
+]
+
+[[repos]]
+repo = "https://github.com/editorconfig-checker/editorconfig-checker.python"
+rev = "e8b4e28241a9ae8296ba6e4a491b5da4eda73283" # frozen: 3.11.1
+hooks = [
+    { id = "editorconfig-checker", args = ["-disable-indent-size"] },
+]
+
 [[repos]]
 repo = "local"
 hooks = [
