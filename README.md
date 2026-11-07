@@ -37,7 +37,7 @@ Other tasks:
 | `pixi run build`    | Build the production site into `./site` (strict mode)    |
 | `pixi run clean`    | Delete build output, caches and the generated dev config |
 | `pixi run rebuild`  | Clean, then build, as CI would                           |
-| `pixi run lint`     | Check spelling in the Markdown files                     |
+| `pixi run lint`     | Run the spelling and formatting checks in `prek.toml`    |
 | `pixi task list`    | List all tasks                                           |
 
 ## About the project
