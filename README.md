@@ -1,10 +1,10 @@
 # satyrn-zen
 
-**https://satyrn-ai.github.io/satyrn-zen/**
+**<https://satyrn-ai.github.io/satyrn-zen/>**
 
 A place where we can learn, create, and share knowledge with the Satyrn.ai community.
 
-![](docs/assets/screenshots/front-page.png)
+![The Satyrn Zen front page, with the site's purpose beside an illustration of a girl holding a planet-shaped balloon](docs/assets/screenshots/front-page.png)
 
 We encourage you to share your knowledge, favourite resources, and experiments with the wider community.
 We would like to curate materials for those just getting started to experts or anywhere in between.
