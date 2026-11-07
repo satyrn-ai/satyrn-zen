@@ -4,7 +4,6 @@
 
     This section contains information about how to create AI systems and workflows authored by Project Satyrn.ai.
 
-
 ## Use a local model
 
 ## Use a sandbox
