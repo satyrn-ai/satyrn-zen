@@ -1,0 +1,10 @@
+# Runs at commit time after `pixi run prek install`, and over every tracked
+# file with `pixi run lint`, which CI calls too. Matches satyrn-website's setup.
+minimum_prek_version = "0.5.5"
+
+[[repos]]
+repo = "local"
+hooks = [
+    # Word list and language live in .vscode/cspell.json.
+    { id = "cspell", name = "cspell", language = "node", entry = "cspell --no-progress --no-summary --no-must-find-files", additional_dependencies = ["cspell@10.0.1"], files = '^(docs/.*|[^/]*)\.md$' },
+]
