@@ -4,13 +4,13 @@ icon: lucide/gift
 
 # Share
 
-!!! info "Share your work and favorites"
+!!! info "Share your work and favourites"
 
     This purpose of this section is to share resources that reinforce Satyrn AI's mission.
     This section is a place for the Satyrn AI community to share their work and for anyone
     to share external resources that relate to our mission.
 
-##  By the Satyrn AI community
+## By the Satyrn AI community
 
 For resources created by the satyrn.ai community for sharing, see [Satyrn.ai Share](share-satyrn.md).
 

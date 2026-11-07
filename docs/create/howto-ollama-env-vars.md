@@ -20,7 +20,7 @@ defaults. The table below covers the ones that change how an agent behaves.
 ## The variables that matter
 
 | Variable | Default | Why you might change it |
-|---|---|---|
+| --- | --- | --- |
 | `OLLAMA_CONTEXT_LENGTH` | adapts to available VRAM, and lands at 4k on a machine without a dedicated GPU | An agent fills 4k with its system prompt and tool definitions before your own task starts. |
 | `OLLAMA_KEEP_ALIVE` | `5m` | On slower hardware the model can unload while you read an answer, and the next turn pays the full load and prompt-processing cost again. |
 

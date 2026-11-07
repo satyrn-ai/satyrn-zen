@@ -1,6 +1,5 @@
 # A vision of the Satyrn ecosystem
 
-
 ## Satyrn's Core
 
 Our initial focus
@@ -14,7 +13,6 @@ Our initial focus
    - Tools that work from terminal, web (notebooks), and as local applications
    - Tools that leverage Python's technical strengths
 
-
 ## Satyrn Inner Ring 1 - Open Python Tools and Libraries
 
 Share knowledge about open source Python Tools and packages from across the ecosystem
@@ -23,6 +21,7 @@ that serve our mission.
 ## Satyrn Inner Ring 2 - Domain specific tools and libraries
 
 Here our focus is on specific domains and how they use Satyrn's tools and philosophy
+
 - Medical
 - Community advocacy
 - Climate research

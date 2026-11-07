@@ -4,7 +4,6 @@
 
     This section contains information about how to create AI systems and workflows authored by Project Satyrn.ai.
 
-
 ## Use a local model
 
 ## Use a sandbox
@@ -34,4 +33,3 @@ If Ollama is not set up yet, start with
 ## Use pydantic.ai
 
 ## Community contributions
-

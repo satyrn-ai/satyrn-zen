@@ -1,12 +1,12 @@
 # satyrn-zen
 
-**https://satyrn-ai.github.io/satyrn-zen/**
+**<https://satyrn-ai.github.io/satyrn-zen/>**
 
 A place where we can learn, create, and share knowledge with the Satyrn.ai community.
 
-![](docs/assets/screenshots/front-page.png)
+![The Satyrn Zen front page, with the site's purpose beside an illustration of a girl holding a planet-shaped balloon](docs/assets/screenshots/front-page.png)
 
-We encourage you to share your knowledge, favorite resources, and experiments with the wider community.
+We encourage you to share your knowledge, favourite resources, and experiments with the wider community.
 We would like to curate materials for those just getting started to experts or anywhere in between.
 
 ## Contributing
@@ -37,6 +37,7 @@ Other tasks:
 | `pixi run build`    | Build the production site into `./site` (strict mode)    |
 | `pixi run clean`    | Delete build output, caches and the generated dev config |
 | `pixi run rebuild`  | Clean, then build, as CI would                           |
+| `pixi run lint`     | Run the spelling and formatting checks in `prek.toml`    |
 | `pixi task list`    | List all tasks                                           |
 
 ## About the project

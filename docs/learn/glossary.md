@@ -38,7 +38,6 @@ A glossary of common terms used throughout this project.
 
 :    The unit a language model processes text in. Models have a context window measured in tokens.
 
-
 !!! note "Add glossary items"
 
     If you would like to add a term to the glossary, please file an issue or

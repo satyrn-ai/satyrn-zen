@@ -1,0 +1,29 @@
+# https://editorconfig.org
+# Encodes the conventions the tracked files already follow.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[{*.toml,*.py}]
+indent_size = 4
+
+[.vscode/cspell.json]
+indent_size = 4
+
+# Two trailing spaces are a Markdown line break.
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{jpg,png,webp,svg,woff,woff2,pdf}]
+charset = unset
+end_of_line = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+indent_style = unset
+indent_size = unset

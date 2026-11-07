@@ -16,5 +16,3 @@
 - [Managing complex data science experiment configurations with Hydra - presented by Michał Karzyński](https://www.youtube.com/watch?v=bNGu8A6F3-8)
 
 ## Blog Posts
-
-
