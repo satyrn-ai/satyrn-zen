@@ -6,7 +6,7 @@ A place where we can learn, create, and share knowledge with the Satyrn.ai commu
 
 ![](docs/assets/screenshots/front-page.png)
 
-We encourage you to share your knowledge, favorite resources, and experiments with the wider community.
+We encourage you to share your knowledge, favourite resources, and experiments with the wider community.
 We would like to curate materials for those just getting started to experts or anywhere in between.
 
 ## Contributing
@@ -37,6 +37,7 @@ Other tasks:
 | `pixi run build`    | Build the production site into `./site` (strict mode)    |
 | `pixi run clean`    | Delete build output, caches and the generated dev config |
 | `pixi run rebuild`  | Clean, then build, as CI would                           |
+| `pixi run lint`     | Check spelling in the Markdown files                     |
 | `pixi task list`    | List all tasks                                           |
 
 ## About the project

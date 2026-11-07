@@ -23,5 +23,10 @@ description = "Build from scratch, exactly as CI would"
 cmd = "zensical build --strict"
 depends-on = ["clean"]
 
+[tasks.lint]
+description = "Run the checks in prek.toml over every tracked file"
+cmd = "prek run --all-files --show-diff-on-failure"
+
 [dependencies]
 zensical = ">=0.0.51,<0.0.52"
+prek = ">=0.5.9,<0.6"
