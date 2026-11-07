@@ -6,7 +6,7 @@ A place where we can learn, create, and share knowledge with the Satyrn.ai commu
 
 ![](docs/assets/screenshots/front-page.png)
 
-We encourage you to share your knowledge, favorite resources, and experiments with the wider community.
+We encourage you to share your knowledge, favourite resources, and experiments with the wider community.
 We would like to curate materials for those just getting started to experts or anywhere in between.
 
 ## Contributing
