@@ -26,15 +26,15 @@ Ollama must be running before you start Open WebUI. If you installed Ollama usin
 1. Install Open WebUI with `pip`. We recommend doing this inside a virtual
    environment to keep its dependencies separate from other projects.
 
-```
-pip install open-webui
-```
+    ```sh
+    pip install open-webui
+    ```
 
 2. Start Open WebUI.
 
-```
-open-webui serve
-```
+    ```sh
+    open-webui serve
+    ```
 
 3. Open `http://localhost:8080` in your browser.
 
@@ -58,7 +58,7 @@ browser.
 
 Start Open WebUI on another available port, such as 3001:
 
-```
+```sh
 open-webui serve --port 3001
 ```
 

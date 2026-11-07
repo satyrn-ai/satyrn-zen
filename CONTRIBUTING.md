@@ -22,24 +22,24 @@ Clone this repo to your system.
 1. [Install pixi](https://pixi.prefix.dev/latest/installation/)
 2. From the repo's root, enter following into your terminal.
 
-```sh
-pixi run dev
-```
+    ```sh
+    pixi run dev
+    ```
 
-This will build an interactive, development web server.
+    This will build an interactive, development web server.
 
-3.  Navigate your browser to <http://localhost:8001>.
+3. Navigate your browser to <http://localhost:8001>.
 
 To serve on another address, pass it along, e.g. `pixi run dev 0.0.0.0:9000`.
 Changes to `zensical.toml` need a server restart to take effect.
 
-### Build the site without running a server.
+### Build the site without running a server
 
 1. From the repo's root, enter following into your terminal.
 
-```sh
-pixi run build
-```
+    ```sh
+    pixi run build
+    ```
 
 ### Check spelling
 
