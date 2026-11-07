@@ -41,6 +41,21 @@ Changes to `zensical.toml` need a server restart to take effect.
 pixi run build
 ```
 
+### Check spelling
+
+Write in British English, for example "behaviour" and "colour".
+CI runs cspell on the Markdown files, and a pull request with an unknown word fails.
+
+To run the same check locally, enter the following into your terminal from the repo's root.
+
+```sh
+pixi run lint
+```
+
+To run the check at each commit, enter `pixi run prek install` once.
+
+If cspell flags a correct name or technical word, add it to `.vscode/cspell.json`.
+
 ## Why zensical?
 
 We use zensical since it works well with Markdown and builds upon the successful mkdocs material project.
