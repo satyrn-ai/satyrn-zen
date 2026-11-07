@@ -34,4 +34,3 @@ If Ollama is not set up yet, start with
 ## Use pydantic.ai
 
 ## Community contributions
-
