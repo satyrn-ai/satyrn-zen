@@ -41,6 +41,11 @@ Changes to `zensical.toml` need a server restart to take effect.
 pixi run build
 ```
 
+### Preview your pull request
+
+Read the Docs builds a preview of the site for each pull request, including ones from forks.
+You'll find its link in the checks on your pull request.
+
 ## Why zensical?
 
 We use zensical since it works well with Markdown and builds upon the successful mkdocs material project.

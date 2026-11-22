@@ -10,6 +10,9 @@ dev server builds from a generated copy instead. It watches the copy, not the
 original, so a change to `zensical.toml` needs a restart to take effect.
 
 Usage: python scripts/dev_config.py localhost:8001
+
+The Read the Docs preview build passes a full URL instead, so each pull
+request preview gets its own site_url.
 """
 
 import re
@@ -21,9 +24,10 @@ TARGET = Path(".zensical.serve.toml")
 
 
 def main(addr: str) -> None:
+    url = addr if "://" in addr else f"http://{addr}/"
     config, count = re.subn(
         r"(?m)^site_url\s*=.*$",
-        f'site_url = "http://{addr}/"',
+        f'site_url = "{url}"',
         SOURCE.read_text(),
     )
     if count != 1:
