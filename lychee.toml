@@ -11,8 +11,9 @@
 extensions = ["md", "toml"]
 
 # Zensical checks links between our own pages when it builds the site, and
-# `pixi run build` fails on a broken one. lychee only needs to cover
-# the links that leave the site.
+# `pixi run build` fails on a broken one. Nav entries and image paths get
+# checked in the built site by .github/workflows/docs-check.yml, so this config
+# only needs to cover the links that leave the site.
 scheme = ["https", "http"]
 
 # The docs point at the local dev server, http://localhost:8001.
